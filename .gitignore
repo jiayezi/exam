@@ -1,0 +1,8 @@
+dist
+tmp
+build
+venv
+*.ico
+*.spec
+批量改名.py
+test.py
