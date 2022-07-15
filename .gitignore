@@ -1,5 +1,7 @@
-dist
+.idea
+__pycache__
 tmp
+dist
 build
 venv
 *.ico
