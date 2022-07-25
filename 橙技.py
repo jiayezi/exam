@@ -1,13 +1,14 @@
 ﻿"""
 图像界面程序，辅助处理试题结构和小分表的信息
-版本：1.0
+版本：1.1
 """
-
+import os
 from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话框，文件访问对话框
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from re import search
-from openpyxl import Workbook, load_workbook
+from openpyxl import Workbook
+from win32com import client
 from passing_rate import student_rate
 
 
@@ -161,81 +162,76 @@ def xiaofen():
     open_path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
                                            defaultextension='.xlsx')
     if open_path:
-        wb_old = load_workbook(open_path)
-        ws_old = wb_old.worksheets[0]
+        excel = client.Dispatch("Excel.Application")
+        excel.Visible = False
+        excel.DisplayAlerts = False
+
+        wb = excel.Workbooks.Open(open_path, False)
+        ws = wb.Worksheets(1)
+        max_row = ws.UsedRange.Rows.Count
+
+        # 从文件名提取编号
+        file_name = os.path.split(open_path)[1]
+        num = file_name[:file_name.rfind('.')]
 
         # 检查选择题答案的数量
-        for row in range(3, ws_old.max_row + 1):
-            try:
-                length = len(ws_old.cell(row, 2).value)
-                if length != len(ws_old.cell(2, 2).value):
-                    text3.insert(END, '选择题答案数量不一样，请检查这个科目是否有多选题 Σ(ŎдŎ|||)ﾉﾉ\n')
-                    break
-            except TypeError:
-                text3.insert(END, '表格第二列没有文字，无法计算长度 (ー_ー)!!\n')
-                break
-        else:
+        range_obj = ws.Range('C2')
+        range_obj.EntireColumn.Insert()
+        ws.Cells(2, 3).Value = '=len(B2)'
+
+        sourceRange = ws.Range(ws.Cells(2, 3), ws.Cells(2, 3))
+        fillRange = ws.Range(ws.Cells(2, 3), ws.Cells(max_row, 3))
+        sourceRange.AutoFill(Destination=fillRange)
+
+        ws.Cells(max_row + 1, 3).Value = f'=MIN(C2:C{max_row})'
+        ws.Cells(max_row + 2, 3).Value = f'=MAX(C2:C{max_row})'
+
+        if ws.Cells(max_row + 1, 3).Value == ws.Cells(max_row + 2, 3).Value:
             text3.insert(END, f'选择题答案数量一样\n')
+        else:
+            text3.insert(END, '选择题答案数量不一样，请检查这个科目是否有多选题 Σ(ŎдŎ|||)ﾉﾉ\n')
+        ws.Cells(max_row + 1, 3).Value = None
+        ws.Cells(max_row + 2, 3).Value = None
+        ws.Columns(3).Delete()
 
         # 找出每个小题的最大得分
-        max_list = []
-        max_num = 0.0
-        for col in range(3, ws_old.max_column + 1):
-            for row in range(2, ws_old.max_row + 1):
-                if ws_old.cell(row, col).value is None:
-                    continue
-                try:
-                    singe_num = float(ws_old.cell(row, col).value)
-                except ValueError:
-                    text3.insert('end', f'第 {row} 行 {col} 列不是纯数字\n')
-                    continue
-                if singe_num > max_num:
-                    max_num = singe_num
-            max_list.append(max_num)
-            max_num = 0.0
-        for n in max_list:
-            text2.insert(END, f'{n}\n')
+        for col in range(3, ws.UsedRange.Columns.Count + 1):
+            # 通过数字获取列号
+            col_name_fun = f'=SUBSTITUTE(ADDRESS(1,{col},4),1,"")'
+            ws.Cells(max_row + 1, col).Value = col_name_fun
+            col_name = ws.Cells(max_row + 1, col).Value
+            # 计算最大值
+            ws.Cells(max_row + 2, col).Value = f'=MAX({col_name}2:{col_name}{max_row})'
+            text2.insert(END, f'{ws.Cells(max_row + 2, col).Value}\n')
         text3.insert('end', '题目最高分查找完成\n')
         text3.tag_add('forever', 1.0, END)
+        # 删除2行临时数据
+        ws.Rows(max_row + 1).Delete()
+        ws.Rows(max_row + 1).Delete()
 
-        # 新建Excel表格
-        wb_new = Workbook()
-        ws_new = wb_new.active
+        # 设置表格为文本格式
+        ws.Cells.NumberFormatLocal = "@"
 
-        # 读取原始文档，写入到新文档
-        for row in range(1, ws_old.max_row + 1):  # 遍历整个工作表
-            for col in range(1, ws_old.max_column + 1):
-                if ws_old.cell(row, col).value is None:
-                    ws_new.cell(row, col, str(0))
-                else:
-                    ws_new.cell(row, col, str(ws_old.cell(row, col).value))
-        # 插入一列
-        ws_new.insert_cols(1)
-        ws_new.cell(1, 1, '班级')
-        for row in range(1, ws_old.max_row):
-            ws_new.cell(row + 1, 1, '0' * 16)
+        # 插入单行单列
+        range_obj = ws.Range('A1')
+        range_obj.EntireRow.Insert()
+        range_obj.EntireColumn.Insert()
 
-        # 插入行
-        ws_new.insert_rows(1)
-        num = simpledialog.askstring(' ', '请输入科目编号')
-        if num:
-            num = num.strip()
-            ws_new.cell(1, 1, num)
+        ws.Cells(1, 1).Value = num
+        ws.Cells(2, 1).Value = '班级'
+        ws.Cells(3, 1).Value = '0' * 16
 
-        text3.insert(END, '小分表已生成\n')
+        # 模拟自动填充
+        sourceRange = ws.Range(ws.Cells(3, 1), ws.Cells(3, 1))
+        fillRange = ws.Range(ws.Cells(3, 1), ws.Cells(ws.UsedRange.Rows.Count, 1))
+        sourceRange.AutoFill(Destination=fillRange)
+
+        wb.Close(SaveChanges=1)  # 保存并关闭
+        excel.Quit()
+
+        text3.insert(END, '小分表修改完成\n')
         text3.tag_add('forever', 1.0, END)
         text3.yview_moveto(1)
-        wb_old.close()
-
-        save_path = filedialog.asksaveasfilename(title='请选择文件存储路径',
-                                                 initialdir='F:/用户目录/桌面/',
-                                                 initialfile=num,
-                                                 filetypes=[('Excel', '.xlsx')],
-                                                 defaultextension='.xlsx')
-        if save_path:
-            wb_new.save(save_path)
-            text3.insert('end', '小分表保存成功\n')
-            wb_new.close()
         text2.focus()
     else:
         text3.insert('end', '没有打开Excel文件\n')
@@ -309,7 +305,6 @@ def total_score():
         text3.tag_add('forever', 1.0, END)
         text3.yview_moveto(1)
 
-        # 输出成绩到Excel表格
         wb = Workbook()
         ws = wb.active
         ws.title = '总分表'
