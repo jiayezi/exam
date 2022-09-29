@@ -11,57 +11,59 @@ from win32com import client  # 可操作office文档，转换格式
 
 
 def initialize():
-    """释放文本框，清空文本框"""
+    """取消冻结文本框，清空文本框"""
     text3.config(state=NORMAL)
     text3.delete(1.0, END)
 
 
 def word_to_pdf():
-    """word转PDF"""
-    inputFile = filedialog.askopenfilename(title='请选择Word文档',
-                                           filetypes=[('Word文档', '.docx'), ('Word文档', '.doc')],
-                                           defaultextension='.docx')
-    if inputFile:
-        file_name = os.path.basename(inputFile)
+    """word转pdf"""
+    input_file = filedialog.askopenfilename(title='请选择Word文档',
+                                            filetypes=[('Word文档', '.docx'), ('Word文档', '.doc')],
+                                            defaultextension='.docx')
+    if input_file:
+        file_name = os.path.basename(input_file)
         file_name = file_name[:file_name.rfind('.')]
         if not os.path.exists('tmp'):
             os.mkdir('tmp')
-        outputFile = os.path.abspath(f'tmp/{file_name}.pdf')  # 需要使用绝对路径，使用相对路径会出错
-        file = open(outputFile, 'wb')
-        file.close()
+        output_file = os.path.join(os.getcwd(), 'tmp', f'{file_name}.pdf')  # 需要使用绝对路径，使用相对路径会出错
 
         word = client.Dispatch('Word.Application')
-        doc = word.Documents.Open(inputFile)
-        doc.SaveAs(outputFile, FileFormat=17)
+        word.Visible = False
+        word.DisplayAlerts = False
+        doc = word.Documents.Open(input_file)
+        doc.SaveAs(output_file, FileFormat=17)
         doc.Close()
         word.Quit()
 
-        pdf_to_images(outputFile)
+        pdf_to_images(output_file)
 
 
 def pdf_to_images(pdf_path=''):
     """PDF转图片"""
     if not os.path.exists('tmp'):
         os.mkdir('tmp')
+
     if pdf_path == '':
         # 打开PDF文件，生成一个对象
         pdf_path = filedialog.askopenfilename(title='请选择PDF文档',
                                               filetypes=[('PDF', '.pdf')],
                                               defaultextension='.pdf')
+
     if pdf_path:
         initialize()
         file_name = os.path.basename(pdf_path)
         file_name = file_name[:file_name.rfind('.')]
+
         doc = fitz.open(pdf_path)
-        for pg in range(doc.pageCount):
+        for pg in range(doc.page_count):
             page = doc[pg]
-            rotate = int(0)
             # 每个尺寸的缩放系数为2，这将为我们生成分辨率提高四倍的图像。
             zoom_x = 2.0
             zoom_y = 2.0
-            trans = fitz.Matrix(zoom_x, zoom_y).preRotate(rotate)
-            pm = page.getPixmap(matrix=trans, alpha=False)
-            pm.writePNG(f'tmp/{pg}.png')
+            trans = fitz.Matrix(zoom_x, zoom_y)
+            pm = page.get_pixmap(matrix=trans, alpha=False)
+            pm.save(f'tmp/{pg:0>3d}.png')
         doc.close()
 
         text3.insert(END, '已转换成图片\n')
@@ -81,14 +83,14 @@ def pdf_to_images(pdf_path=''):
 
 def long_png(path, output_name='0'):
     """纵向拼接图片"""
-    im_list = []
-    for fn in os.listdir(path):
-        if fn.endswith('.png'):
-            im_list.append(Image.open(path + os.sep + fn))
+    img_list = []
+    for file in os.listdir(path):
+        if file.endswith('.png'):
+            img_list.append(Image.open(path + os.sep + file))
 
     width = 0
     height = 0
-    for img in im_list:
+    for img in img_list:
         # 单幅图像尺寸
         w, h = img.size
         # 获取总高度
@@ -97,10 +99,10 @@ def long_png(path, output_name='0'):
         width = max(width, w)
 
     # 创建白色的空白长图
-    result = Image.new(im_list[0].mode, (width, height), 0xffffff)
+    result = Image.new(img_list[0].mode, (width, height), 0xffffff)
     # 拼接图片
     height = 0
-    for img in im_list:
+    for img in img_list:
         w, h = img.size
         # 图片水平居中
         result.paste(img, box=(round(width / 2 - w / 2), height))
@@ -138,7 +140,7 @@ def xuanze():
 
 
 def pinjie():
-    """拼接两个文件夹里的名字相同的图片，拼接成功后删除后图片"""
+    """拼接两个文件夹里的名字相同的图片，拼接成功后删除第二个文件夹的图片"""
     img_dir = filedialog.askdirectory(title='请选择题目文件夹', initialdir='F:/用户目录/桌面/')
     if img_dir:
         da_dir = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
@@ -158,9 +160,10 @@ def pinjie():
                     ti_height = p_ti.height
                     new_width = max(p_ti.width, p_da.width)
                     new_height = p_ti.height + p_da.height
-                    result = Image.new(mode='RGB', size=(new_width, new_height), color=(255, 255, 255))
-                    result.paste(p_ti, box=(0, 0))
-                    result.paste(p_da, box=(10, ti_height))
+                    # 多留10像素，左右两边各留5像素的空白背景
+                    result = Image.new(mode='RGB', size=(new_width + 10, new_height), color=(255, 255, 255))
+                    result.paste(p_ti, box=(5, 0))
+                    result.paste(p_da, box=(5, ti_height))
                     result.save(img_dir + os.sep + img)
                     os.remove(da_dir + os.sep + img)
                 else:
@@ -215,50 +218,55 @@ def pic_num():
     if file_name:
         initialize()
         subject = {'01': '语文', '02': '数学', '03': '数学文', '04': '数学理', '05': '英语', '06': '政治', '07': '历史',
-                   '08': '地理', '09': '物理', '10': '化学', '11': '生物', '14': '品德与社会', '15': '道德与法治'}
+                   '08': '地理', '09': '物理', '10': '化学', '11': '生物', '13': '科学', '14': '品德与社会', '15': '道德与法治'}
         wb = load_workbook(file_name)
         ws = wb.worksheets[0]
 
-        num = simpledialog.askstring(' ', '请输入科目编号：')
-        if num in subject:
-            text3.insert(END, f'科目是 {subject[num]}\n')
-            text3.tag_add('forever', 1.0, END)
-        else:
-            subject[num] = simpledialog.askstring(' ', '未识别出科目，请输入科目名称：')
+        while True:
+            num = simpledialog.askstring(' ', '请输入科目编号：')
+            if num in subject:
+                text3.insert(END, f'科目是 {subject[num]}\n')
+                text3.tag_add('forever', 1.0, END)
+            else:
+                subject[num] = simpledialog.askstring(' ', '没有找到科目，请输入科目名称：')
 
-        img_dir = filedialog.askdirectory(title='请选择图片文件夹', initialdir='F:/用户目录/桌面/')
+            img_dir = filedialog.askdirectory(title='请选择图片文件夹', initialdir='F:/用户目录/桌面/')
 
-        if img_dir:
-            complete = True
-            for row in range(2, ws.max_row + 1):
-                if ws.cell(row, 2).value == subject[num]:
-                    img_name = ws.cell(row, 3).value
-                    abs_img_name = os.path.join(img_dir, f'{img_name}.png')
-                    img_num = ws.cell(row, 1).value
-                    abs_img_num = os.path.join(img_dir, f'{img_num}.png')
-                    if os.path.exists(abs_img_name):
-                        shutil.copyfile(abs_img_name, abs_img_num)
-                    else:
-                        text3.insert(END, f'图片 {img_name}.png 不存在 (ー_ー)!!\n')
-                        complete = False
+            if img_dir:
+                complete = True
+                for row in range(2, ws.max_row + 1):
+                    if ws.cell(row, 2).value == subject[num]:
+                        img_name = ws.cell(row, 3).value
+                        abs_img_name = os.path.join(img_dir, f'{img_name}.png')
+                        img_id = ws.cell(row, 1).value
+                        abs_img_id = os.path.join(img_dir, f'{img_id}.png')
+                        if os.path.exists(abs_img_name):
+                            shutil.copyfile(abs_img_name, abs_img_id)
+                        else:
+                            text3.insert(END, f'图片 {img_name}.png 不存在 (ー_ー)!!\n')
+                            complete = False
 
-            text3.insert(END, '图片文件名修改完成\n')
+                text3.insert(END, '图片文件名修改完成\n')
 
-            # 复制图片到指定目录
-            if complete:
-                img_list = os.listdir(img_dir)
-                if not os.path.exists(f'{img_dir}/03'):
-                    os.mkdir(f'{img_dir}/03')
-                for img in img_list:
-                    shutil.move(f'{img_dir}/{img}', f'{img_dir}/03')
-                shutil.copytree(f'{img_dir}/03', f'{img_dir}/13')
-                p_dir = img_dir[:img_dir.rfind('/')]
-                if not os.path.exists(f'{p_dir}/{num}'):
-                    os.rename(img_dir, f'{p_dir}/{num}')
-                text3.insert(END, '文件复制完成 (＾▽＾) \n')
+                # 复制图片到指定目录
+                if complete:
+                    img_list = os.listdir(img_dir)
+                    if not os.path.exists(f'{img_dir}/03'):
+                        os.mkdir(f'{img_dir}/03')
+                    for img in img_list:
+                        shutil.move(f'{img_dir}/{img}', f'{img_dir}/03')
+                    shutil.copytree(f'{img_dir}/03', f'{img_dir}/13')
+                    p_dir = img_dir[:img_dir.rfind('/')]
+                    if not os.path.exists(f'{p_dir}/{num}'):
+                        os.rename(img_dir, f'{p_dir}/{num}')
+                    text3.insert(END, '文件复制完成 (＾▽＾) \n')
 
-        else:
-            text3.insert(END, '没有选择图片文件夹\n')
+            else:
+                text3.insert(END, '没有选择图片文件夹\n')
+
+            choice = messagebox.askyesno('改名确认', '是否继续改名？')
+            if not choice:
+                break
         wb.close()
     over()
 
@@ -317,8 +325,8 @@ def show_message():
 
 def about():
     messagebox.showinfo(title='关于', message='爱梦姬 1.0\n'
-                                            'by 李清萍\n'
-                                            'QQ 1601235906\n')
+                                              'by 李清萍\n'
+                                              'QQ 1601235906\n')
 
 
 root = ttk.Window()
