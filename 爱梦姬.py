@@ -16,69 +16,22 @@ def initialize():
     text3.delete(1.0, END)
 
 
-def word_to_pdf():
+def word_to_pdf(word_path):
     """word转pdf"""
-    input_file = filedialog.askopenfilename(title='请选择Word文档',
-                                            filetypes=[('Word文档', '.docx'), ('Word文档', '.doc')],
-                                            defaultextension='.docx')
-    if input_file:
-        file_name = os.path.basename(input_file)
-        file_name = file_name[:file_name.rfind('.')]
-        if not os.path.exists('tmp'):
-            os.mkdir('tmp')
-        output_file = os.path.join(os.getcwd(), 'tmp', f'{file_name}.pdf')  # 需要使用绝对路径，使用相对路径会出错
-
-        word = client.Dispatch('Word.Application')
-        word.Visible = False
-        word.DisplayAlerts = False
-        doc = word.Documents.Open(input_file)
-        doc.SaveAs(output_file, FileFormat=17)
-        doc.Close()
-        word.Quit()
-
-        pdf_to_images(output_file)
-
-
-def pdf_to_images(pdf_path=''):
-    """PDF转图片"""
+    file_name = os.path.basename(word_path)
+    file_name = file_name[:file_name.rfind('.')]
     if not os.path.exists('tmp'):
         os.mkdir('tmp')
+    pdf_path = os.path.join(os.getcwd(), 'tmp', f'{file_name}.pdf')  # 需要使用绝对路径，使用相对路径会出错
 
-    if pdf_path == '':
-        # 打开PDF文件，生成一个对象
-        pdf_path = filedialog.askopenfilename(title='请选择PDF文档',
-                                              filetypes=[('PDF', '.pdf')],
-                                              defaultextension='.pdf')
-
-    if pdf_path:
-        initialize()
-        file_name = os.path.basename(pdf_path)
-        file_name = file_name[:file_name.rfind('.')]
-
-        doc = fitz.open(pdf_path)
-        for pg in range(doc.page_count):
-            page = doc[pg]
-            # 每个尺寸的缩放系数为2，这将为我们生成分辨率提高四倍的图像。
-            zoom_x = 2.0
-            zoom_y = 2.0
-            trans = fitz.Matrix(zoom_x, zoom_y)
-            pm = page.get_pixmap(matrix=trans, alpha=False)
-            pm.save(f'tmp/{pg:0>3d}.png')
-        doc.close()
-
-        text3.insert(END, '已转换成图片\n')
-        text3.tag_add('forever', 1.0, END)
-
-        long_png('tmp', file_name)
-
-        # 删除临时文件
-        for img in os.listdir('tmp'):
-            try:
-                os.remove(f'tmp/{img}')
-            except PermissionError:
-                pass
-
-    over()
+    word = client.Dispatch('Word.Application')
+    word.Visible = False
+    word.DisplayAlerts = False
+    doc = word.Documents.Open(word_path)
+    doc.SaveAs(pdf_path, FileFormat=17)
+    doc.Close()
+    word.Quit()
+    return pdf_path
 
 
 def long_png(path, output_name='0'):
@@ -99,7 +52,7 @@ def long_png(path, output_name='0'):
         width = max(width, w)
 
     # 创建白色的空白长图
-    result = Image.new(img_list[0].mode, (width, height), 0xffffff)
+    result = Image.new(mode='RGB', size=(width, height), color=0xffffff)
     # 拼接图片
     height = 0
     for img in img_list:
@@ -117,6 +70,54 @@ def long_png(path, output_name='0'):
     if save_path:
         result.save(save_path)
         text3.insert(END, '图片保存成功\n')
+
+
+def word_to_images():
+    """word转图片"""
+
+    word_path = filedialog.askopenfilename(title='请选择Word文档',
+                                           filetypes=[('Word文档', '.docx'), ('Word文档', '.doc')],
+                                           defaultextension='.docx')
+    pdf_path = word_to_pdf(word_path)
+    pdf_to_images(pdf_path)
+
+
+def pdf_to_images(pdf_path=''):
+    """pdf转图片"""
+
+    if not os.path.exists('tmp'):
+        os.mkdir('tmp')
+
+    if pdf_path == '':
+        # 打开PDF文件，生成一个对象
+        pdf_path = filedialog.askopenfilename(title='请选择PDF文档',
+                                              filetypes=[('PDF', '.pdf')],
+                                              defaultextension='.pdf')
+
+    if pdf_path:
+        initialize()
+        file_name = os.path.basename(pdf_path)
+        file_name = file_name[:file_name.rfind('.')]
+
+        pdf = fitz.open(pdf_path)
+        for page in pdf:
+            pm = page.get_pixmap(dpi=150)
+            pm.save(f'tmp/{page.number:0>3d}.png')
+        pdf.close()
+
+        text3.insert(END, '已转换成图片\n')
+        text3.tag_add('forever', 1.0, END)
+
+        long_png('tmp', file_name)
+
+        # 删除临时文件
+        for file in os.listdir('tmp'):
+            try:
+                os.remove(f'tmp/{file}')
+            except PermissionError:
+                pass
+
+    over()
 
 
 def xuanze():
@@ -218,7 +219,8 @@ def pic_num():
     if file_name:
         initialize()
         subject = {'01': '语文', '02': '数学', '03': '数学文', '04': '数学理', '05': '英语', '06': '政治', '07': '历史',
-                   '08': '地理', '09': '物理', '10': '化学', '11': '生物', '13': '科学', '14': '品德与社会', '15': '道德与法治'}
+                   '08': '地理', '09': '物理', '10': '化学', '11': '生物', '13': '科学', '14': '品德与社会',
+                   '15': '道德与法治'}
         wb = load_workbook(file_name)
         ws = wb.worksheets[0]
 
@@ -370,7 +372,7 @@ btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
 buttonbar2 = ttk.Frame(root)
 buttonbar2.pack(padx=10, pady=0, side=BOTTOM)
 
-btn = ttk.Button(master=buttonbar2, text='Word转长图', compound=LEFT, command=word_to_pdf)
+btn = ttk.Button(master=buttonbar2, text='Word转长图', compound=LEFT, command=word_to_images)
 btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
 
 btn = ttk.Button(master=buttonbar2, text='PDF转长图', compound=LEFT, command=pdf_to_images)
