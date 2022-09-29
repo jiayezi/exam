@@ -6,8 +6,8 @@ from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话�
 from openpyxl import load_workbook
 from PIL import Image
 from PIL import UnidentifiedImageError
-import fitz  # pymupdf模块，操作PDF文件，提取图片
-from win32com import client  # 可操作office文档，转换格式
+import fitz  # pymupdf库，操作PDF文件，可转换成图片
+from win32com import client  # 操作office文档，转换格式
 
 
 def initialize():
