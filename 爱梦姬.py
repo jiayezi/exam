@@ -41,6 +41,7 @@ def long_png(path, output_name='0'):
         if file.endswith('.png'):
             img_list.append(Image.open(path + os.sep + file))
 
+    # 获取总的高度以及最大的宽度
     width = 0
     height = 0
     for img in img_list:
@@ -125,14 +126,36 @@ def xuanze():
     initialize()
     data = text1.get(1.0, END)
     data = data.strip()
+    data_list = data.split('\n')
     if data:
         img_path = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
         if img_path:
             num = 0
-            for s in data:
+            for s in data_list:
                 if s in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
                     num += 1
                     shutil.copyfile(f'img/{s}.png', f'{img_path}/{num}.png')
+                # 处理多选题的答案
+                elif len(s) > 1:
+                    num += 1
+                    img_list = []
+                    for i in s:
+                        img_list.append(Image.open(f'img/{i}.png'))
+
+                    width = 0
+                    height = 0
+                    for img in img_list:
+                        w, h = img.size
+                        width += w
+                        height = max(height, h)
+
+                    result = Image.new(mode='RGB', size=(width, height), color=0xffffff)
+                    x = 0
+                    for img in img_list:
+                        w, h = img.size
+                        result.paste(img, box=(x, round(height / 2 - h / 2)))
+                        x += w
+                    result.save(f'{img_path}/{num}.png')
             text3.insert(END, f'制作了{num}个答案\n')
     else:
         text3.insert(END, '请先输入答案\n')
@@ -142,36 +165,35 @@ def xuanze():
 
 def pinjie():
     """拼接两个文件夹里的名字相同的图片，拼接成功后删除第二个文件夹的图片"""
-    img_dir = filedialog.askdirectory(title='请选择题目文件夹', initialdir='F:/用户目录/桌面/')
-    if img_dir:
-        da_dir = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
-        if da_dir:
+    img_path = filedialog.askdirectory(title='请选择题目文件夹', initialdir='F:/用户目录/桌面/')
+    if img_path:
+        img_path2 = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
+        if img_path2:
             initialize()
 
-            img_list = os.listdir(img_dir)
-
+            img_list = os.listdir(img_path)
             for img in img_list:
-                if os.path.exists(da_dir + os.sep + img):
+                if os.path.exists(img_path2 + os.sep + img):
                     try:
-                        p_ti = Image.open(img_dir + os.sep + img)
-                        p_da = Image.open(da_dir + os.sep + img)
+                        img1 = Image.open(img_path + os.sep + img)
+                        img2 = Image.open(img_path2 + os.sep + img)
                     except UnidentifiedImageError:
                         text3.insert(END, '一个文件不是图片格式，打开失败\n')
                         continue
-                    ti_height = p_ti.height
-                    new_width = max(p_ti.width, p_da.width)
-                    new_height = p_ti.height + p_da.height
-                    # 多留10像素，左右两边各留5像素的空白背景
+                    img1_height = img1.height
+                    new_width = max(img1.width, img2.width)
+                    new_height = img1.height + img2.height
+                    # 多留10像素，左右两边各留5像素的空白
                     result = Image.new(mode='RGB', size=(new_width + 10, new_height), color=(255, 255, 255))
-                    result.paste(p_ti, box=(5, 0))
-                    result.paste(p_da, box=(5, ti_height))
-                    result.save(img_dir + os.sep + img)
-                    os.remove(da_dir + os.sep + img)
+                    result.paste(img1, box=(5, 0))
+                    result.paste(img2, box=(5, img1_height))
+                    result.save(img_path + os.sep + img)
+                    os.remove(img_path2 + os.sep + img)
                 else:
                     text3.insert(END, f'{img[:-4]}没有答案\n')
             # 删除空文件夹
-            if not os.listdir(da_dir):
-                os.rmdir(da_dir)
+            if not os.listdir(img_path2):
+                os.rmdir(img_path2)
 
             text3.insert(END, '拼接完成\n')
     over()
@@ -266,8 +288,11 @@ def pic_num():
             else:
                 text3.insert(END, '没有选择图片文件夹\n')
 
+            over()
             choice = messagebox.askyesno('改名确认', '是否继续改名？')
-            if not choice:
+            if choice:
+                initialize()
+            else:
                 break
         wb.close()
     over()
@@ -337,6 +362,7 @@ root.geometry('600x400+700+200')  # 窗口大小
 root.minsize(500, 340)
 root.maxsize(600, 550)
 root.bind('<Control-m>', kemu_dir)
+root.bind('<Control-M>', kemu_dir)
 
 menubar = ttk.Menu(root)
 help_menu = ttk.Menu(menubar, tearoff=0)
