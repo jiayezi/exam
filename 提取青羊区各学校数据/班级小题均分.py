@@ -5,14 +5,14 @@ from openpyxl.styles import Font, colors, Alignment
 from tkinter import filedialog
 
 # 设置每个工作表的合并范围
-range1 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'Y1:Y2', 'Z1:Z2')
-range2 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'K1:M1', 'Q1:Q2', 'R1:R2')
-range3 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'E1:G1', 'H1:J1', 'K1:M1', 'N1:P1', 'R1:T1', 'V1:V2', 'W1:W2')
-# range4 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'W1:W2', 'X1:X2')
-# range5 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'Y1:AB1', 'AC1:AF1',
-#           'AG1:AI1', 'AJ1:AL1', 'AM1:AO1', 'AP1:AP2', 'AQ1:AQ2')
+range1 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'P1:R1', 'Z1:AB1', 'AD1:AF1', 'AH1:AH2', 'AI1:AI2')
+range2 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'Q1:V1', 'AC1:AC2', 'AD1:AD2')
+range3 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'BP1:BP2', 'BQ1:BQ2')
+range4 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'Y1:Y2', 'Z1:Z2')
+range5 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'T1:V1', 'W1:Y1',
+          'Z1:AB1', 'AE1:AG1', 'AH1:AH2', 'AI1:AI2')
 # range6 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'AW1:AW2', 'AX1:AX2')
-table_ranges = (range1, range2, range3)
+table_ranges = (range1, range2, range3, range4, range5)
 
 # 定义格式
 Calibri_10_font = Font(name='Calibri', size=10)

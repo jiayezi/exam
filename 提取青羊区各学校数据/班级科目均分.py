@@ -4,7 +4,7 @@ from openpyxl.styles import Border, Side
 from openpyxl.styles import Font, colors, Alignment
 from tkinter import filedialog
 
-table_range = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'E1:G1', 'H1:J1', 'K1:M1', 'N1:P1')
+table_range = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'E1:G1', 'H1:J1', 'K1:M1', 'N1:P1', 'Q1:S1', 'T1:V1')
 
 Calibri_10_font = Font(name='Calibri', size=10)
 border1 = Border(left=Side(border_style='thin', color='000000'),
