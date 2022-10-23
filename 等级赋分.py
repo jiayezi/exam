@@ -1,9 +1,9 @@
 from tkinter import filedialog
 from openpyxl import load_workbook, Workbook
 
-extra = 5  # 前5列数据用不上，从第6列开始才是科目分数
+extra = 5  # 前5列数据用不上
 
-# 读取Excel数据，存储到列表中
+# 读取Excel文件
 file_path = filedialog.askopenfilename(title='请选择Excel文件', initialdir='F:/用户目录/桌面/',
                                        filetypes=[('Excel', '.xlsx')], defaultextension='.xlsx')
 if not file_path:
@@ -24,57 +24,56 @@ rateY = (100, 86, 71, 56, 41, 30, 0)
 for i, subject in enumerate(subjects):
     student_data.sort(key=lambda x: float(x[extra + i]), reverse=True)
 
-    # 获取原始分临界值（从大到小）
-    rateS = [student_data[0][extra + i]]
+    # 获取原始分临界值
+    rateS = [int(student_data[0][extra + i])]
     temp_dj = 1
-    for j, element in enumerate(student_data):
-        rate = (student_num - j - 1) / student_num  # 计算一个学生的领先率
+    for j, row in enumerate(student_data):
+        rate = (student_num - j - 1) / student_num  # 领先率
         for index, value in enumerate(rateT):
             if rate > value:
                 # dj = index
-                if index != temp_dj:
+                if temp_dj != index:
                     temp_dj = index
-                    rateS.append(element[extra + i]+1)
+                    rateS.append(int(row[extra + i]))
                 break
-    rateS.append(student_data[-1][extra + i])
-    print(f'原始分临界值：{rateS}')
+    rateS.append(int(student_data[-1][extra + i]))
+    print(f'{subject}原始分临界值：{rateS}')
 
     # 计算赋分成绩
-    for line in student_data:
-        score = int(line[extra + i])
+    for row in student_data:
+        score = int(row[extra + i])
         xsdj = 1
-        for djindex, dj in enumerate(rateS):
-            if djindex == 0:
+        for index, dj_score in enumerate(rateS):
+            if index == 0:
                 continue
-            if score >= int(dj):
-                xsdj = djindex
+            if score >= dj_score:
+                xsdj = index
                 break
-        m = int(rateS[xsdj - 1])
-        n = int(rateS[xsdj])
+        m = rateS[xsdj - 1]
+        n = rateS[xsdj]
         a = rateY[xsdj - 1]
         b = rateY[xsdj]
         converts = (b * (score - m) + a * (n - score)) / (n - m)
         converts = round(converts)
-        print(f'等级：{xsdj}\tm：{m}\tn：{n}\ta：{a}\tb：{b}\t原始分：{score}\t转换分：{converts}')
-        line.append(converts)
+        print(f'等级：{xsdj}\tm：{m}\tn：{n}\ta：{a}\tb：{b}\t原始分：{score:0>2d}\t转换分：{converts}')
+        row.append(converts)
     ws_title.append(f'{subject}转换分')
 
-# 把数据存储到新的Excel文件
+# 写入Excel文件
 wb = Workbook()
 ws = wb.active
 ws.append(ws_title)
-for line in student_data:
-    ws.append(line)
+for row in student_data:
+    ws.append(row)
 file_path = filedialog.asksaveasfilename(title='请选择文件存储路径', initialdir='F:/用户目录/桌面/', initialfile='赋分成绩',
                                          filetypes=[('Excel', '.xlsx')], defaultextension='.xlsx')
 if file_path:
     wb.save(file_path)
 
-
-'''
-  * @param m 原始分结束
-  * @param n 原始分开始
-  * @param a 等级赋值分结束
-  * @param b 等级赋值分开始
+"""
+  * @param m 原始分开始
+  * @param n 原始分结束
+  * @param a 等级赋值分开始
+  * @param b 等级赋值分结束
   * @param score 实考分数
-'''
+"""
