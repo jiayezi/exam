@@ -1,6 +1,6 @@
 ﻿"""
 图像界面程序，辅助处理试题结构和小分表的信息
-版本：1.1
+版本：1.2
 """
 import os
 from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话框，文件访问对话框
@@ -26,11 +26,12 @@ def timu():
     data = data.strip()
     if data:
         data_list = data.split('\n')
-
+        text = ''
         for i, s in enumerate(data_list):
             data_obj = search(r'\d{1,2}', s)
             data = data_obj.group()
-            text2.insert('end', f'{data}\n')
+            text += f'{data}\n'
+        text2.insert('end', text)
         text3.insert('end', '提取完成\n')
         text2.focus()
     over()
@@ -47,19 +48,20 @@ def nandu():
     if data:
         data_list = data.split('\n')
 
+        text = ''
         for i, s in enumerate(data_list):
             try:
                 num = float(s)
                 num *= 100
             except ValueError:
-                text2.insert('end', '\n')
+                text += '\n'
                 text3.insert('end', f'第 {i + 1} 行不是纯数字，处理失败\n')
             else:
-                text2.insert('end', f'{str(int(num))}\n')
+                text += f'{str(int(num))}\n'
                 counter += 1
-                text3.insert('end', f'处理了 {counter} 个难度值\n')
 
-        text3.insert('end', '全部处理完成\n')
+        text2.insert('end', text[:-1])
+        text3.insert('end', f'全部处理完成，处理了 {counter} 个难度值\n')
         text2.focus()
     over()
 
@@ -71,38 +73,42 @@ def xuanzeti():
     data = data.strip()
     if data:
         counter = 0
+        text = ''
         for i in data:
             if i in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
-                text2.insert('end', f'{i}\n')
+                text += f'{i}\n'
                 counter += 1
+        text2.insert('end', text[:-1])
         text3.insert('end', f'全部提取完成，发现 {counter} 个答案\n')
         text2.focus()
     over()
 
 
 def nengli():
-    """把√替换成该列对应的文字"""
+    """把符号替换成该列对应的文字"""
     initialize()
 
-    data = text1.get(1.0, 2.0)  # 获取第一行
+    data = text1.get(1.0, END)
     data = data.strip()
+    data_list = data.split('\n')
 
     if data:
-        title_list = data.split('\t')
-        row = 2.0
-        while data:
-            data = text1.get(row, row + 1)
-            data = data[:-1]
-            data_list = data.split('\t')
-            if len(data_list) > 1:  # 跳过末尾的换行符
-                try:
-                    n = data_list.index('√')
-                except ValueError:
-                    text2.insert('end', '\n')
-                    text3.insert('end', f'第 {int(row)} 行没有“√”\n')
-                else:
-                    text2.insert('end', f'{title_list[n]}\n')
-            row += 1
+        title = data_list[0]
+        rows = data_list[1:]
+        title_list = title.split('\t')
+
+        text = ''
+        for row_index, row in enumerate(rows):
+            row_list = row.split('\t')
+            for i, mark in enumerate(row_list):
+                if mark.strip():
+                    text += f'{title_list[i]}\n'
+                    break
+            else:
+                text += f'\n'
+                text3.insert('end', f'第 {row_index+2} 行没有符号\n')
+        text2.insert('end', text[:-1])
+
         text3.insert('end', '全部处理完成\n')
         text2.focus()
     over()
@@ -246,7 +252,7 @@ def total_score():
     # 存储考号和分数的字典
     student_dict = {}
     counter = 0
-    titles = []
+    titles = ['考号']
     while True:
         data = simpledialog.askstring('输入成绩', '请输入考号和单科成绩：                                                  ')
         if data:
@@ -291,41 +297,28 @@ def total_score():
             text3.insert(END, '没有输入考号和分数\n')
             break
 
+    titles.append('总分')
     if len(student_dict):
-
-        # 输出成绩到文本框
-        for key in student_dict:
-            text2.insert(END, f'{key}\t')
-            for single_score in student_dict[key]:
-                text2.insert(END, f'{str(single_score)}\t')
-            total = str(sum(student_dict[key]))
-            text2.insert(END, total)
-            text2.insert(END, '\n')
-        text3.insert(END, '总分计算完成\n')
-        text3.tag_add('forever', 1.0, END)
-        text3.yview_moveto(1)
-
         wb = Workbook()
         ws = wb.active
         ws.title = '总分表'
 
         # 添加首行
-        ws.cell(1, 1, '考号')
-        if len(titles) > 1:
-            for col, title in enumerate(titles):
-                ws.cell(1, col + 2, title)
+        if len(titles) > 2:
+            ws.append(titles)
         else:
+            ws.cell(1, 1, '考号')
             for i in range(counter):
                 ws.cell(1, i + 2, f'科目{i + 1}')
-        ws.cell(1, counter + 2, '总分')
+            ws.cell(1, counter + 2, '总分')
 
         # 添加数据
-        for row, key in enumerate(student_dict):
-            ws.cell(row + 2, 1, key)
-            for col, single_score in enumerate(student_dict[key]):
-                ws.cell(row + 2, col + 2, single_score)
+        for row_index, key in enumerate(student_dict):
+            ws.cell(row_index + 2, 1, key)
+            for col_index, single_score in enumerate(student_dict[key]):
+                ws.cell(row_index + 2, col_index + 2, single_score)
             total = sum(student_dict[key])
-            ws.cell(row + 2, len(student_dict[key]) + 2, total)
+            ws.cell(row_index + 2, len(student_dict[key]) + 2, total)
 
         file_path = filedialog.asksaveasfilename(title='请选择文件存储路径',
                                                  initialdir='F:/用户目录/桌面/',
