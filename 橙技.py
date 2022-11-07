@@ -153,7 +153,10 @@ def buding():
     for line in data_list:
         line_list = line.split('\t')
         for s in line_list:
-            text2.insert('end', f'[{s}]')
+            if len(s) > 0:
+                text2.insert('end', f'[{s}]')
+            else:
+                text2.insert('end', '[.]')
         text2.insert('end', '\n')
 
     text2.focus()

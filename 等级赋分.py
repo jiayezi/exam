@@ -41,9 +41,9 @@ for i, subject in enumerate(subjects):
     for j, row in enumerate(student_data):
         current_score = float(row[extra + i])
         previous_score = float(student_data[j - 1][extra + i])
-        if j > 0 and current_score != previous_score:
+        if current_score != previous_score:
             rate = (student_num - j - 1) / student_num  # 领先率
-        # rate = get_count(student_data, row[extra + i], i) / student_num
+        # rate = get_count(student_data, row[extra + i], i) / student_num  # 效率低
             for index, value in enumerate(rateT):
                 if index == 0:
                     continue
