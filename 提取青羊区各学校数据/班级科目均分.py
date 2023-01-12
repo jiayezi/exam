@@ -4,7 +4,7 @@ from openpyxl.styles import Border, Side
 from openpyxl.styles import Font, colors, Alignment
 from tkinter import filedialog
 
-table_range = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'E1:G1', 'H1:J1', 'K1:M1', 'N1:P1', 'Q1:S1', 'T1:V1')
+table_range = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'E1:H1', 'I1:L1', 'M1:P1', 'Q1:T1', 'U1:X1', 'Y1:AB1')
 
 Calibri_10_font = Font(name='Calibri', size=10)
 border1 = Border(left=Side(border_style='thin', color='000000'),
@@ -41,7 +41,7 @@ for school in schools:
     for row in ws.values:
         if row[1] == school:
             ws2.append(row)
-    # 下面是经典方法
+    # 传统方法
     # for row in range(4, ws.max_row + 1):
     #     if ws.cell(row, 2).value == school:
     #         line = ['']

@@ -79,8 +79,9 @@ def word_to_images():
     word_path = filedialog.askopenfilename(title='请选择Word文档',
                                            filetypes=[('Word文档', '.docx'), ('Word文档', '.doc')],
                                            defaultextension='.docx')
-    pdf_path = word_to_pdf(word_path)
-    pdf_to_images(pdf_path)
+    if word_path:
+        pdf_path = word_to_pdf(word_path)
+        pdf_to_images(pdf_path)
 
 
 def pdf_to_images(pdf_path=''):

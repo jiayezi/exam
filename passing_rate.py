@@ -10,7 +10,7 @@ def student_rate(event):
         wb2 = Workbook()
         ws1 = wb2.active
         ws1.title = '语文'
-        titles = ('学校', '年级', '班级', '学生', '考号', '成绩')
+        titles = ('考生ID', '考生号', '姓名', '学校', '班级', '成绩')
         ws1.append(titles)
 
         pas = {'语文': 90, '数学': 90, '英语': 90, '政治': 60, '历史': 60, '地理': 60, '物理': 60, '化学': 60, '生物': 60}
@@ -34,7 +34,8 @@ def student_rate(event):
                 break
             for row in range(2, ws.max_row + 1):
                 score = ws.cell(row, col).value
-                if score is None:
+                # if score is None or score == '' or score == '缺考' or score == '缺扫':
+                if isinstance(score, str):
                     continue
                 if score > 0:
                     all_count += 1
