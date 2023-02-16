@@ -61,7 +61,7 @@ def nandu():
                 counter += 1
 
         text2.insert('end', text[:-1])
-        text3.insert('end', f'全部处理完成，处理了 {counter} 个难度值\n')
+        text3.insert('end', f'处理了 {counter} 个难度值\n')
         text2.focus()
     over()
 
@@ -74,12 +74,12 @@ def xuanzeti():
     if data:
         counter = 0
         text = ''
-        for i in data:
-            if i in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
-                text += f'{i}\n'
+        for s in data:
+            if s in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
+                text += f'{s}\n'
                 counter += 1
         text2.insert('end', text[:-1])
-        text3.insert('end', f'全部提取完成，发现 {counter} 个答案\n')
+        text3.insert('end', f'提取了 {counter} 个答案\n')
         text2.focus()
     over()
 
@@ -119,9 +119,7 @@ def omr():
     initialize()
 
     data = text1.get(1.0, END)
-    data = data.strip()
-    data = data.replace(' ', '.')
-
+    data = data.strip().replace(' ', '.')
     data_list = data.split('\n')
 
     counter = 0
@@ -145,9 +143,7 @@ def buding():
     initialize()
 
     data = text1.get(1.0, END)
-    data = data.strip()
-    data = data.replace(' ', '.')
-
+    data = data.strip().replace(' ', '.')
     data_list = data.split('\n')
 
     for line in data_list:
@@ -257,7 +253,7 @@ def total_score():
     counter = 0
     titles = ['考号']
     while True:
-        data = simpledialog.askstring('输入成绩', '请输入考号和单科成绩：                                                  ')
+        data = simpledialog.askstring('输入成绩', '请输入考号和单科成绩：')
         if data:
             data = data.strip()
             data_list = data.split('\n')
@@ -310,18 +306,14 @@ def total_score():
         if len(titles) > 2:
             ws.append(titles)
         else:
-            ws.cell(1, 1, '考号')
-            for i in range(counter):
-                ws.cell(1, i + 2, f'科目{i + 1}')
-            ws.cell(1, counter + 2, '总分')
-
+            row_data = ['考号']+list(range(counter))+['总分']
+            ws.append(row_data)
         # 添加数据
         for row_index, key in enumerate(student_dict):
-            ws.cell(row_index + 2, 1, key)
-            for col_index, single_score in enumerate(student_dict[key]):
-                ws.cell(row_index + 2, col_index + 2, single_score)
-            total = sum(student_dict[key])
-            ws.cell(row_index + 2, len(student_dict[key]) + 2, total)
+            row_data = [key]
+            row_data.extend(student_dict[key])
+            row_data.append(sum(student_dict[key]))
+            ws.append(row_data)
 
         file_path = filedialog.asksaveasfilename(title='请选择文件存储路径',
                                                  initialdir='F:/用户目录/桌面/',
@@ -343,7 +335,7 @@ def chaifen():
     total = total.strip()
     total_list = total.split('\n')
 
-    score = simpledialog.askstring('提交分数', '请输入试题结构的题目分数：                                       ')
+    score = simpledialog.askstring('提交分数', '请输入试题结构的题目分数：')
 
     if score:
         score = score.strip()
@@ -362,11 +354,10 @@ def chaifen():
                         num_total = 0
                 counter += 1
                 text2.insert('end', '\n')
-                text3.insert('end', f'拆散 {counter} 个总分\n')
         except ValueError:
             text3.insert('end', '总分或题目分不是纯数字，拆分失败 (ー_ー)!!\n')
         else:
-            text3.insert('end', '全部拆分完成\n')
+            text3.insert('end', f'拆散 {counter} 个总分\n')
             text2.focus()
     else:
         text3.insert('end', '没有输入题目分数\n')
@@ -390,16 +381,16 @@ def show_message():
 
     text0 = ttk.Text(top, width=100, height=20, spacing1=10, spacing2=10)
     text0.pack()
-    text0.insert(END, '本软件用于处理考试成绩之类的外部数据，减少工作过程中经常遇到的复杂和重复的操作。\n\n'
+    text0.insert(END, '本软件用于处理考试相关的数据，减少复杂和重复的操作。\n\n'
                       '复制需要处理的文本，粘贴到第一个文本框，点击下方对应的按钮，第二个文本框会显示处理结果。\n\n'
-                      '数字：提取文本里的数字\n'
-                      '难度值：处理双向细目表里的不大于1的难度值，把数字放大100倍\n'
-                      '单选答案：处理试卷文档里的单选题答案，从文字里提取大写字母A-G\n'
-                      '能力要求：处理双向细目表里的能力层次信息，把“√”替换成第一行对应的能力层次\n'
-                      'OMR：处理原始小分表里的单选题答案，把多选答案和空白替换成“.”\n'
-                      '不定项OMR：处理原始小分表里的不定项选选题答案\n'
-                      '小分表：读取原始小分表，检查题目分数，在第一列插入16个0，第一行插入科目编号，另存为新小分表\n'
-                      '总分：输入考号和单科成绩，对每个学生的单科成绩求和，输出单科成绩和总分，另存为总分表\n'
+                      '数字：提取题号\n'
+                      '难度值：把数字放大100倍\n'
+                      '单选答案：从文子里提取大写字母A-G\n'
+                      '能力要求：把文字里的“√”替换成第一行对应的能力要求\n'
+                      'OMR：把多选答案和空白替换成“.”\n'
+                      '不定项OMR：把每个不定项选选题答案放进中括号里\n'
+                      '小分表：读取原始小分表，检查题目分数，在第一列插入16个0，第一行插入科目编号，另存为新的小分表\n'
+                      '总分：输入考号和单科成绩，生成总分表\n'
                       '拆分：按照小题分数把每个学生的总分拆分成小分\n'
                       'ctrl+y：计算及格率和不及格率')
 
