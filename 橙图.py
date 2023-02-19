@@ -1,12 +1,13 @@
 import os
 import shutil
-import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
 from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话框，文件访问对话框
-from openpyxl import load_workbook
+
+import fitz  # pymupdf库，操作PDF文件，可转换成图片
+import ttkbootstrap as ttk
 from PIL import Image
 from PIL import UnidentifiedImageError
-import fitz  # pymupdf库，操作PDF文件，可转换成图片
+from openpyxl import load_workbook
+from ttkbootstrap.constants import *
 from win32com import client  # 操作office文档，转换格式
 
 
@@ -209,11 +210,9 @@ def pic_name():
     if not img_list:
         return
     initialize()
+    file_path = os.path.dirname(img_list[0])
     for img in img_list:
-        file_path = os.path.dirname(img)
-        n_list = os.path.basename(img).split('.')
-        name = n_list[0]  # 文件名
-        extension = n_list[1]  # 扩展名
+        name, extension = os.path.basename(img).split('.')  # 文件名，扩展名
         fs = ''
         if name[0] in ('A', 'B'):
             fs = name[0]
@@ -290,6 +289,30 @@ def pic_num():
         else:
             break
     wb.close()
+    over()
+
+
+def pic_point():
+    """根据小题数量复制图片并改名"""
+    img_list = filedialog.askopenfilenames(title='请选择图片文件',
+                                           filetypes=[('PNG', '.png'), ('JPG', '.jpg')],
+                                           defaultextension='.png')
+    if not img_list:
+        return
+    initialize()
+    point_str = simpledialog.askstring('输入', '请输入小题数量：')
+    if point_str is None or point_str.strip() == '' or not point_str.isdigit():
+        text3.insert(END, '必须输入纯数字\n')
+        over()
+        return
+    point_num = int(point_str)
+    file_path = os.path.dirname(img_list[0])
+    for img in img_list:
+        name, extension = os.path.basename(img).split('.')  # 文件名，扩展名
+        for i in range(1, point_num):
+            shutil.copyfile(img, f'{file_path}/{name}-{i}.{extension}')
+        os.rename(img, f'{file_path}/{name}-{point_num}.{extension}')
+    text3.insert(END, '完成\n')
     over()
 
 
@@ -377,7 +400,7 @@ text3.tag_add('forever', 1.0, END)
 text3.config(state=DISABLED)
 
 buttonbar = ttk.Frame(root)
-buttonbar.pack(padx=10, pady=25, side=BOTTOM)
+buttonbar.pack(padx=0, pady=25, side=BOTTOM)
 
 btn = ttk.Button(master=buttonbar, text='制作答案', compound=LEFT, command=xuanze)
 btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
@@ -388,11 +411,14 @@ btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
 btn = ttk.Button(master=buttonbar, text='拆文件名', compound=LEFT, command=pic_name)
 btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
 
+btn = ttk.Button(master=buttonbar, text='增加小题', compound=LEFT, command=pic_point)
+btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
+
 btn = ttk.Button(master=buttonbar, text='添加编号', compound=LEFT, command=pic_num)
 btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
 
 buttonbar2 = ttk.Frame(root)
-buttonbar2.pack(padx=10, pady=0, side=BOTTOM)
+buttonbar2.pack(padx=0, pady=0, side=BOTTOM)
 
 btn = ttk.Button(master=buttonbar2, text='Word转长图', compound=LEFT, command=word_to_images)
 btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
