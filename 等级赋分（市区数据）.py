@@ -1,16 +1,8 @@
+"""按新高考的等级赋分制，计算每个学生每个科目的等级和赋分成绩。本程序把0分视为缺考，不计算等级赋分"""
 from tkinter import filedialog
 from openpyxl import load_workbook, Workbook
 
-
-def get_count(list, score, i):
-    count = 0
-    for value in list:
-        if value[extra + i] < score:
-            count += 1
-    return count
-
-
-extra = 9  # 前5列数据用不上
+extra = 5  # 前5列数据用不上
 
 # 读取Excel文件
 file_path = filedialog.askopenfilename(title='请选择Excel文件', initialdir='F:/用户目录/桌面/',
@@ -25,7 +17,6 @@ for row in ws.values:
 student_data = ws_rows[1:]
 ws_title = ws_rows[0]
 subjects = ws_title[extra:]
-student_num = len(student_data)
 
 rateT = (1, 0.85, 0.5, 0.15, 0.02, 0)
 rateY = ((100, 86), (85, 71), (70, 56), (55, 41), (40, 30))
@@ -33,6 +24,17 @@ dict_dj = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E'}
 
 for i, subject in enumerate(subjects):
     student_data.sort(key=lambda x: float(x[extra + i]), reverse=True)
+
+    # 获取得分大于0分的人数、获取大于0分的最小原始分
+    student_data_reverse = student_data[::-1]
+    score_0 = 0
+    min_score = 0.0
+    for index, row in enumerate(student_data_reverse):
+        if float(row[extra + i]) > 0.0:
+            score_0 += index
+            min_score = float(row[extra + i])
+            break
+    student_num = len(student_data)-score_0
 
     # 获取原始分等级区间
     rateS = [[float(student_data[0][extra + i])]]
@@ -43,7 +45,6 @@ for i, subject in enumerate(subjects):
         previous_score = float(student_data[j - 1][extra + i])
         if current_score != previous_score:
             rate = (student_num - j - 1) / student_num  # 领先率
-        # rate = get_count(student_data, row[extra + i], i) / student_num  # 效率低
             for index, value in enumerate(rateT):
                 if index == 0:
                     continue
@@ -53,12 +54,18 @@ for i, subject in enumerate(subjects):
                         rateS[temp_dj - 1].append(float(student_data[j - 1][extra + i]))
                         rateS.append([float(row[extra + i])])
                     break
-    rateS[-1].append(float(student_data[-1][extra + i]))
+    # rateS[-1].append(float(student_data[-1][extra + i]))
+    rateS[-1].append(min_score)
+
     print(f'\n{subject}原始分等级区间：{rateS}')
 
     # 计算赋分成绩
     for row in student_data:
         score = float(row[extra + i])
+        if score == 0.0:
+            row.append(0)
+            row.append('-')
+            continue
         xsdj = 0
         for index, dj_score in enumerate(rateS):
             if index == 0:
@@ -72,7 +79,7 @@ for i, subject in enumerate(subjects):
         b = rateY[xsdj][0]
         converts = (b * (score - m) + a * (n - score)) / (n - m)
         converts = round(converts)
-        print(f'等级：{xsdj}\tm：{m}\tn：{n}\ta：{a}\tb：{b}\t原始分：{score:.1f}\t转换分：{converts}')
+        # print(f'等级：{xsdj}\tm：{m}\tn：{n}\ta：{a}\tb：{b}\t原始分：{score:.1f}\t转换分：{converts}')
         row.append(converts)
         row.append(dict_dj[xsdj])
     ws_title.append(f'{subject}转换分')

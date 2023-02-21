@@ -1,7 +1,7 @@
 from tkinter import filedialog
 from openpyxl import load_workbook, Workbook
 
-extra = 9  # 前5列数据用不上
+extra = 5  # 前9列数据用不上
 
 # 读取Excel文件
 file_path = filedialog.askopenfilename(title='请选择Excel文件', initialdir='F:/用户目录/桌面/',
@@ -16,20 +16,19 @@ for row in ws.values:
 student_data = ws_rows[1:]
 ws_title = ws_rows[0]
 subjects = ws_title[extra:]
-student_num = len(student_data)
 
 rateT = (1, 0.85, 0.5, 0.15, 0.02, 0)
 rateY = ((100, 86), (85, 71), (70, 56), (55, 41), (40, 30))
 dict_dj = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E'}
 
 
-def getp1(data, i, score):  # 小于某值的个数
-    d1 = filter(lambda x: score > x[i] > 0, data)
+def getp1(data, index, score):  # 小于某值的个数
+    d1 = filter(lambda x: score > x[index] > 0, data)
     return len(list(d1))
 
 
-def getp2(data, i, score):  # 大于某值的个数
-    d1 = filter(lambda x: x[i] > score, data)
+def getp2(data, index, score):  # 大于某值的个数
+    d1 = filter(lambda x: x[index] > score, data)
     return len(list(d1))
 
 
@@ -67,7 +66,7 @@ for i, subject in enumerate(subjects):
                     rateS[temp_dj - 1].append(float(student_data[j - 1][extra + i]))
                     rateS.append([float(row[extra + i])])
                 break
-        print(temp_dj)
+        # print(temp_dj)
 
     rateS[-1].append(minscore)  # 转换分对照的原始分区间最后一个值为最后一个不为0分的最小值
     print(f'\n{subject}原始分等级区间：{rateS}')
@@ -92,7 +91,7 @@ for i, subject in enumerate(subjects):
             b = rateY[xsdj][0]
             converts = (b * (score - m) + a * (n - score)) / (n - m)
             converts = round(converts)
-        print(f'等级：{xsdj}\tm：{m}\tn：{n}\ta：{a}\tb：{b}\t原始分：{score:.1f}\t转换分：{converts}')
+        # print(f'等级：{xsdj}\tm：{m}\tn：{n}\ta：{a}\tb：{b}\t原始分：{score:.1f}\t转换分：{converts}')
         row.append(converts)
         if score > 0:
             row.append(dict_dj[xsdj])
