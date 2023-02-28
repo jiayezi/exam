@@ -171,34 +171,37 @@ def pinjie():
     img_path = filedialog.askdirectory(title='请选择题目文件夹', initialdir='F:/用户目录/桌面/')
     if not img_path:
         return
-    img_path2 = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
-    if img_path2:
-        initialize()
-        img_list = os.listdir(img_path)
-        for img in img_list:
-            if os.path.exists(img_path2 + os.sep + img):
-                try:
-                    img1 = Image.open(img_path + os.sep + img)
-                    img2 = Image.open(img_path2 + os.sep + img)
-                except UnidentifiedImageError:
-                    text3.insert(END, '一个文件不是图片格式，打开失败\n')
-                    continue
-                img1_height = img1.height
-                new_width = max(img1.width, img2.width)
-                new_height = img1.height + img2.height
-                # 多留10像素，左右两边各留5像素的空白
-                result = Image.new(mode='RGB', size=(new_width + 10, new_height), color=(255, 255, 255))
-                result.paste(img1, box=(5, 0))
-                result.paste(img2, box=(5, img1_height))
-                result.save(img_path + os.sep + img)
-                os.remove(img_path2 + os.sep + img)
-            else:
-                text3.insert(END, f'{img[:-4]}没有答案\n')
-        # 删除空文件夹
-        if not os.listdir(img_path2):
-            os.rmdir(img_path2)
+    img_path2 = img_path+'答案'
+    if not os.path.exists(img_path2):
+        img_path2 = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
+        if not img_path2:
+            return
+    initialize()
+    img_list = os.listdir(img_path)
+    for img in img_list:
+        if os.path.exists(img_path2 + os.sep + img):
+            try:
+                img1 = Image.open(img_path + os.sep + img)
+                img2 = Image.open(img_path2 + os.sep + img)
+            except UnidentifiedImageError:
+                text3.insert(END, '一个文件不是图片格式，打开失败\n')
+                continue
+            img1_height = img1.height
+            new_width = max(img1.width, img2.width)
+            new_height = img1.height + img2.height
+            # 多留10像素，左右两边各留5像素的空白
+            result = Image.new(mode='RGB', size=(new_width + 10, new_height), color=(255, 255, 255))
+            result.paste(img1, box=(5, 0))
+            result.paste(img2, box=(5, img1_height))
+            result.save(img_path + os.sep + img)
+            os.remove(img_path2 + os.sep + img)
+        else:
+            text3.insert(END, f'{img[:-4]}没有答案\n')
+    # 删除空文件夹
+    if not os.listdir(img_path2):
+        os.rmdir(img_path2)
 
-        text3.insert(END, '拼接完成\n')
+    text3.insert(END, '拼接完成\n')
     over()
 
 

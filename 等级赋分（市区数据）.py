@@ -2,7 +2,7 @@
 from tkinter import filedialog
 from openpyxl import load_workbook, Workbook
 
-extra = 5  # 前5列数据用不上
+extra = 10  # 前10列数据用不上
 
 # 读取Excel文件
 file_path = filedialog.askopenfilename(title='请选择Excel文件', initialdir='F:/用户目录/桌面/',
@@ -27,14 +27,13 @@ for i, subject in enumerate(subjects):
 
     # 获取得分大于0分的人数、获取大于0分的最小原始分
     student_data_reverse = student_data[::-1]
-    score_0 = 0
+    student_num = len(student_data)
     min_score = 0.0
     for index, row in enumerate(student_data_reverse):
         if float(row[extra + i]) > 0.0:
-            score_0 += index
+            student_num -= index
             min_score = float(row[extra + i])
             break
-    student_num = len(student_data)-score_0
 
     # 获取原始分等级区间
     rateS = [[float(student_data[0][extra + i])]]
