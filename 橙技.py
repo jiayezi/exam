@@ -28,6 +28,10 @@ def timu():
         text = ''
         for i, s in enumerate(data_list):
             data_obj = search(r'\d{1,2}', s)
+            if not data_obj:
+                text3.insert('end', '没有找到数字\n')
+                over()
+                return
             data = data_obj.group()
             text += f'{data}\n'
         text2.insert('end', text)
@@ -380,18 +384,15 @@ def show_message():
 
     text0 = ttk.Text(top, width=100, height=20, spacing1=10, spacing2=10)
     text0.pack()
-    text0.insert(END, '本软件用于处理考试相关的数据，减少复杂和重复的操作。\n\n'
-                      '复制需要处理的文本，粘贴到第一个文本框，点击下方对应的按钮，第二个文本框会显示处理结果。\n\n'
-                      '数字：提取题号\n'
+    text0.insert(END, '题目：每行提取一个最多两位的数字\n'
                       '难度值：把数字放大100倍\n'
-                      '单选答案：从文子里提取大写字母A-G\n'
+                      '单选答案：从文子里提取A-G的大写字母\n'
                       '能力要求：把文字里的“√”替换成第一行对应的能力要求\n'
-                      'OMR：把多选答案和空白替换成“.”\n'
-                      '不定项OMR：把每个不定项选选题答案放进中括号里\n'
+                      'OMR：合并所有列，把多选题答案和空白替换成“.”\n'
+                      '多选OMR：合并所有列，把每个多选题答案放进中括号里\n'
                       '小分表：读取原始小分表，检查题目分数，在第一列插入16个0，第一行插入科目编号，另存为新的小分表\n'
                       '总分：输入考号和单科成绩，生成总分表\n'
-                      '拆分：按照小题分数把每个学生的总分拆分成小分\n'
-                      'ctrl+y：计算及格率和不及格率')
+                      '拆分：按照小题分数把每个学生的总分拆分成小分\n')
 
     text0.tag_config('forever', foreground='green', font=('黑体', 12), spacing3=5)
     text0.tag_add('forever', 1.0, END)
@@ -401,9 +402,7 @@ def show_message():
 
 
 def about():
-    messagebox.showinfo(title='关于', message='橙技 1.0\n'
-                                            'by 李清萍\n'
-                                            'QQ 1601235906\n')
+    messagebox.showinfo(title='关于', message='橙技 1.0\n')
 
 
 def select_all(event):
@@ -463,7 +462,7 @@ text3.config(state=DISABLED)
 buttonbar = ttk.Frame(root)
 buttonbar.pack(padx=10, pady=20, side=BOTTOM)
 
-btn = ttk.Button(master=buttonbar, text='数字', compound=LEFT, command=timu)
+btn = ttk.Button(master=buttonbar, text='题目', compound=LEFT, command=timu)
 btn.pack(side=LEFT, ipadx=15, padx=10, pady=5)
 
 btn = ttk.Button(master=buttonbar, text='难度值', compound=LEFT, command=nandu)
@@ -478,7 +477,7 @@ btn.pack(side=LEFT, ipadx=15, padx=10, pady=5)
 btn = ttk.Button(master=buttonbar, text='OMR', compound=LEFT, command=omr)
 btn.pack(side=LEFT, ipadx=15, padx=10, pady=5)
 
-btn = ttk.Button(master=buttonbar, text='不定项OMR', compound=LEFT, command=buding)
+btn = ttk.Button(master=buttonbar, text='多选OMR', compound=LEFT, command=buding)
 btn.pack(side=LEFT, ipadx=15, padx=10, pady=5)
 
 btn = ttk.Button(master=buttonbar, text='小分表', compound=LEFT, command=xiaofen)
