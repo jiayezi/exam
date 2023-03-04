@@ -1,32 +1,41 @@
 """doc批量转换为docx，提取每一页的word表格数据，保存为excel文件"""
 import os
+from tkinter import filedialog
 import docx
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from win32com import client
 
 
-subject = ('语文', '数学', '数学文', '数学理', '英语', '政治', '历史', '地理', '物理', '化学', '生物')
+subject = ('语文', '数学', '数学文', '数学理', '英语', '政治', '历史', '地理', '物理', '化学', '生物', '文科综合', '理科综合')
 border1 = Border(left=Side(border_style='thin', color='000000'),
                  right=Side(border_style='thin', color='000000'),
                  top=Side(border_style='thin', color='000000'),
                  bottom=Side(border_style='thin', color='000000'))
 
-word_path = "F:/用户目录/桌面/成绩单word"
-excel_path = "F:/用户目录/桌面/成绩单excel"
+word_path = filedialog.askdirectory(title='请选择word文件夹', initialdir='E:/库/桌面/')
+word_path_new = os.path.dirname(word_path)+'/docx'
+if not os.path.exists(word_path_new):
+    os.mkdir(word_path_new)
+excel_path = os.path.dirname(word_path)+'/excel'
+if not os.path.exists(excel_path):
+    os.mkdir(excel_path)
 
-# 打开Word文档，提取表格数据
 word = client.Dispatch('Word.Application')
 word.Visible = False
 word.DisplayAlerts = False
 word_list = os.listdir(word_path)
 for word_file in word_list:
     doc = word.Documents.Open(f"{word_path}/{word_file}")
-    doc.SaveAs(f"{word_path}/{word_file}.docx", 12)
+    doc.SaveAs(f"{word_path_new}/{word_file}.docx", 12)
     doc.Close()
+word.Quit()
 
-    document = docx.Document(f"F:/用户目录/桌面/成绩单word/{word_file}.docx")
-    class_ = word_file[0]
+# 打开Word文档，提取表格数据
+word_list = os.listdir(word_path_new)
+for word_file in word_list:
+    document = docx.Document(rf"{word_path_new}\{word_file}")
+    class_ = word_file.split('_')[0]
     id_number = ''
     name = ''
     end_tag = False
@@ -38,7 +47,7 @@ for word_file in word_list:
             if row_data[0] == '考号':
                 id_number = row_data[1]
                 name = row_data[3]
-            if row_data[0] == '生物':
+            if row_data[0] == '历史':  # 文科和理科的结束科目不一样，需要分开处理，需要修改这里的科目名称
                 end_tag = True
             table_data.append(row_data)
         page_data.append(table_data)
@@ -82,4 +91,4 @@ for word_file in word_list:
 
             end_tag = False
             page_data = []
-word.Quit()
+

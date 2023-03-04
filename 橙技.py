@@ -9,7 +9,6 @@ from ttkbootstrap.constants import *
 from re import search
 from openpyxl import Workbook
 from win32com import client
-from passing_rate import student_rate
 
 
 def initialize():
@@ -428,7 +427,6 @@ def close_handle():
 root = ttk.Window(themename='cerculean', title='橙技')
 root.geometry('1080x800+450+100')  # 窗口大小
 root.minsize(1000, 750)
-root.bind('<Control-y>', student_rate)
 
 # 菜单
 menubar = ttk.Menu(root)
