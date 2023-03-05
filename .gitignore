@@ -4,6 +4,5 @@ tmp
 dist
 build
 venv
-*.ico
 *.spec
 test*.py
