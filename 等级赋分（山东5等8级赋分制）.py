@@ -9,22 +9,6 @@
 from tkinter import filedialog
 from openpyxl import load_workbook, Workbook
 
-
-# 排名计算
-# lst = [5,5,5,4,4,4,3,3,2,2,1,1]
-# prev = -1 # 上个分数，初始值为-1
-# rank = 0  # 当前排名
-# for i, n in enumerate(lst):
-#     if n != prev:
-#         # 当前分数不等于上个分数的时候，排名需要增加
-#         # 增加的排名数，就是上个分数相同的数量
-#         rank = i + 1
-#         # 记录当前分数
-#         prev = n
-#     print(n, rank)
-# exit()
-
-
 extra = 14  # 前14列数据用不上
 
 # 读取Excel文件
@@ -53,41 +37,42 @@ def sort_rule(score):
         return float(score)
 
 
-for i, subject in enumerate(subjects):
-    student_data.sort(key=lambda x: sort_rule(x[extra + i]), reverse=True)
+for sub_index, subject in enumerate(subjects):
+    student_data.sort(key=lambda x: sort_rule(x[extra + sub_index]), reverse=True)
 
     # 获取得分大于0分的人数、获取大于0分的最小原始分
     student_data_reverse = student_data[::-1]
     student_num = len(student_data)
     min_score = 0.0
-    for index, row in enumerate(student_data_reverse):
-        if row[extra + i] is None or row[extra + i] == '':
+    for w_index, row in enumerate(student_data_reverse):
+        if row[extra + sub_index] is None or row[extra + sub_index] == '':
             continue
-        if float(row[extra + i]) > 0.0:
-            student_num -= index
-            min_score = float(row[extra + i])
+        if float(row[extra + sub_index]) > 0.0:
+            student_num -= w_index
+            min_score = float(row[extra + sub_index])
             break
 
     # 获取原始分等级区间
-    rateS = [[float(student_data[0][extra + i])]]
+    rateS = [[float(student_data[0][extra + sub_index])]]
     temp_dj = 0
     rate = (student_num - 1) / student_num
-    for j, row in enumerate(student_data):
-        if row[extra + i] is None or row[extra + i] == '' or student_data[j - 1][extra + i] is None or \
-                student_data[j - 1][extra + i] == '':
+    for row_index, row in enumerate(student_data):
+        if row[extra + sub_index] is None or row[extra + sub_index] == '' or \
+                student_data[row_index - 1][extra + sub_index] is None or \
+                student_data[row_index - 1][extra + sub_index] == '':
             continue
-        current_score = float(row[extra + i])
-        previous_score = float(student_data[j - 1][extra + i])
+        current_score = float(row[extra + sub_index])
+        previous_score = float(student_data[row_index - 1][extra + sub_index])
         if current_score != previous_score:
-            rate = (student_num - j - 1) / student_num  # 领先率
-            for index, value in enumerate(rateT):
-                if index == 0:
+            rate = (student_num - row_index - 1) / student_num  # 领先率
+            for v_index, value in enumerate(rateT):
+                if v_index == 0:
                     continue
                 if rate >= value:
-                    if temp_dj != index - 1:
-                        temp_dj = index - 1
-                        rateS[temp_dj - 1].append(float(student_data[j - 1][extra + i]))
-                        rateS.append([float(row[extra + i])])
+                    if temp_dj != v_index - 1:
+                        temp_dj = v_index - 1
+                        rateS[temp_dj - 1].append(float(student_data[row_index - 1][extra + sub_index]))
+                        rateS.append([float(row[extra + sub_index])])
                     break
     # rateS[-1].append(float(student_data[-1][extra + i]))
     rateS[-1].append(min_score)
@@ -97,14 +82,14 @@ for i, subject in enumerate(subjects):
     # 计算赋分成绩和排名
     prev = -1  # 上个分数，初始值为-1
     rank = 0  # 当前排名
-    for index_i, row in enumerate(student_data):
-        score_str = row[extra + i]
+    for r_index, row in enumerate(student_data):
+        score_str = row[extra + sub_index]
         if score_str is None or score_str == '' or float(score_str) < 0.001:
             row.append('')
             row.append('')
             row.append('')
             continue
-        score = float(row[extra + i])
+        score = float(row[extra + sub_index])
         xsdj = 0
         for index, dj_score in enumerate(rateS):
             if index == 0:
@@ -122,9 +107,9 @@ for i, subject in enumerate(subjects):
         row.append(converts)
         row.append(dict_dj[xsdj])
 
-        # 计算排名 如果分数不一样，排名就是索引值+1，否则排名不变
+        # 计算排名 如果分数不一样，排名就是索引值+1，如果分数一样，排名不变
         if converts != prev:
-            rank = index_i + 1
+            rank = r_index + 1
             prev = converts
         row.append(rank)
     ws_title.append(f'{subject}转换分')
