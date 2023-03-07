@@ -1,5 +1,6 @@
 import os
 import shutil
+import tkinter
 from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话框，文件访问对话框
 
 import fitz  # pymupdf库，操作PDF文件，可转换成图片
@@ -13,8 +14,8 @@ from win32com import client  # 操作office文档，转换格式
 
 def initialize():
     """取消冻结文本框，清空文本框"""
-    text3.config(state=NORMAL)
-    text3.delete(1.0, END)
+    info_text.config(state=NORMAL)
+    info_text.delete(1.0, END)
 
 
 def word_to_pdf(word_path):
@@ -72,7 +73,7 @@ def long_png(path, output_name):
                                              defaultextension='.png')
     if save_path:
         result.save(save_path)
-        text3.insert(END, '图片保存成功\n')
+        info_text.insert(END, '图片保存成功\n')
 
 
 def word_to_images():
@@ -109,8 +110,8 @@ def pdf_to_images(pdf_path=None):
             pm.save(f'tmp/{page.number:0>3d}.png')
         pdf.close()
 
-        text3.insert(END, '已转换成图片\n')
-        text3.tag_add('forever', 1.0, END)
+        info_text.insert(END, '已转换成图片\n')
+        info_text.tag_add('forever', 1.0, END)
 
         long_png('tmp', file_name)
 
@@ -127,7 +128,7 @@ def pdf_to_images(pdf_path=None):
 def xuanze():
     """根据字母输出对应的字母图片"""
     initialize()
-    data = text1.get(1.0, END)
+    data = input_text.get(1.0, END)
     data = data.strip()
     data_list = data.split('\n')
     if data:
@@ -159,9 +160,9 @@ def xuanze():
                         result.paste(img, box=(width, round(height / 2 - h / 2)))
                         width += w
                     result.save(f'{img_path}/{num}.png')
-            text3.insert(END, f'制作了{num}个答案\n')
+            info_text.insert(END, f'制作了{num}个答案\n')
     else:
-        text3.insert(END, '请先输入答案\n')
+        info_text.insert(END, '请先输入答案\n')
 
     over()
 
@@ -184,7 +185,7 @@ def pinjie():
                 img1 = Image.open(img_path + os.sep + img)
                 img2 = Image.open(img_path2 + os.sep + img)
             except UnidentifiedImageError:
-                text3.insert(END, '一个文件不是图片格式，打开失败\n')
+                info_text.insert(END, '一个文件不是图片格式，打开失败\n')
                 continue
             img1_height = img1.height
             new_width = max(img1.width, img2.width)
@@ -196,12 +197,12 @@ def pinjie():
             result.save(img_path + os.sep + img)
             os.remove(img_path2 + os.sep + img)
         else:
-            text3.insert(END, f'{img[:-4]}没有答案\n')
+            info_text.insert(END, f'{img[:-4]}没有答案\n')
     # 删除空文件夹
     if not os.listdir(img_path2):
         os.rmdir(img_path2)
 
-    text3.insert(END, '拼接完成\n')
+    info_text.insert(END, '拼接完成\n')
     over()
 
 
@@ -228,8 +229,8 @@ def pic_name():
                 shutil.copyfile(img, f'{file_path}/{fs}{i}.{extension}')
             os.rename(img, f'{file_path}/{fs}{end}.{extension}')
         else:
-            text3.insert(END, f'文件名 {name} 格式不正确，跳过修改 (ー_ー)!!\n')
-    text3.insert(END, '修改完成\n')
+            info_text.insert(END, f'文件名 {name} 格式不正确，跳过修改 (ー_ー)!!\n')
+    info_text.insert(END, '修改完成\n')
     over()
 
 
@@ -252,14 +253,14 @@ def pic_num():
     while True:
         num = simpledialog.askstring(' ', '请输入科目编号：')
         if num in subject:
-            text3.insert(END, f'科目是 {subject[num]}\n')
-            text3.tag_add('forever', 1.0, END)
+            info_text.insert(END, f'科目是 {subject[num]}\n')
+            info_text.tag_add('forever', 1.0, END)
         else:
             subject[num] = simpledialog.askstring(' ', '没有找到科目，请输入科目名称：')
 
         img_dir = filedialog.askdirectory(title='请选择图片文件夹', initialdir='F:/用户目录/桌面/')
         if not img_dir:
-            text3.insert(END, '没有选择图片文件夹\n')
+            info_text.insert(END, '没有选择图片文件夹\n')
             return
 
         complete = True
@@ -272,10 +273,10 @@ def pic_num():
                 if os.path.exists(abs_img_name):
                     shutil.copyfile(abs_img_name, abs_img_id)
                 else:
-                    text3.insert(END, f'图片 {img_name}.png 不存在 (ー_ー)!!\n')
+                    info_text.insert(END, f'图片 {img_name}.png 不存在 (ー_ー)!!\n')
                     complete = False
 
-        text3.insert(END, '图片文件名修改完成\n')
+        info_text.insert(END, '图片文件名修改完成\n')
 
         # 复制图片到指定目录
         if complete:
@@ -283,7 +284,7 @@ def pic_num():
             os.mkdir(f'{p_dir}/{num}')
             os.rename(img_dir, f'{p_dir}/{num}/03')
             shutil.copytree(f'{p_dir}/{num}/03', f'{p_dir}/{num}/13')
-            text3.insert(END, '文件复制完成 (＾▽＾) \n')
+            info_text.insert(END, '文件复制完成 (＾▽＾) \n')
 
         over()
         choice = messagebox.askyesno('改名确认', '是否继续改名？')
@@ -305,7 +306,7 @@ def pic_point():
     initialize()
     point_str = simpledialog.askstring('输入', '请输入小题数量：')
     if point_str is None or point_str.strip() == '' or not point_str.isdigit():
-        text3.insert(END, '必须输入纯数字\n')
+        info_text.insert(END, '必须输入纯数字\n')
         over()
         return
     point_num = int(point_str)
@@ -315,7 +316,7 @@ def pic_point():
         for i in range(1, point_num):
             shutil.copyfile(img, f'{file_path}/{name}-{i}.{extension}')
         os.rename(img, f'{file_path}/{name}-{point_num}.{extension}')
-    text3.insert(END, '完成\n')
+    info_text.insert(END, '完成\n')
     over()
 
 
@@ -339,27 +340,21 @@ def kemu_dir(event):
 
 def over():
     """改变文本颜色，禁用文本框"""
-    text3.tag_add('forever', 1.0, END)
-    text3.config(state=DISABLED)
-    text3.yview_moveto(1)  # 文本更新滚动显示
-
-
-def close_handle():
-    if messagebox.askyesno('退出确认', '确定要退出吗？'):
-        root.destroy()
+    info_text.tag_add('forever', 1.0, END)
+    info_text.config(state=DISABLED)
+    info_text.yview_moveto(1)  # 文本更新滚动显示
 
 
 def show_message():
     top = ttk.Toplevel()
     top.title('软件介绍')
-    top.geometry('500x250+750+280')  # 窗口大小
+    top.geometry(f'500x250+{offset_x+50}+{offset_y+60}')  # 窗口大小
     top.maxsize(600, 350)
     top.minsize(350, 180)
 
     text0 = ttk.Text(top, width=800, height=20, spacing1=10, spacing2=10)
     text0.pack()
-    text0.insert(END, '本软件用于处理考试相关的图片，减少复杂和重复的劳动。\n\n'
-                      'Word/PDF转长图：字面意思\n'
+    text0.insert(END, 'Word/PDF转长图：字面意思\n'
                       '制作答案：读取单项选择题答案，生成答案图片。\n'
                       '拼接图片：打开两个图片文件夹，把文件名相同的图片拼接，拼接成功后会删除原始图片。\n'
                       '拆文件名：找出文件名以“-”分隔的图片，复制图片并修改图片文件名，如把A1-3.png改成A1.png，A2.png，A3.png。\n'
@@ -373,16 +368,17 @@ def show_message():
 
 
 def about():
-    messagebox.showinfo(title='关于', message='橙图 1.0\n'
-                                              'by 李清萍\n'
-                                              'QQ 1601235906\n')
+    messagebox.showinfo(title='关于', message='橙图 1.0\n')
 
 
-root = ttk.Window()
-root.title('橙图')
-root.geometry('600x400+700+200')  # 窗口大小
-root.minsize(500, 340)
-root.maxsize(600, 550)
+root = ttk.Window(themename='cerculean', title='橙图')
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+offset_x = int((screen_width-600)/2)
+offset_y = int((screen_height-450)/2)
+root.geometry(f'600x400+{offset_x}+{offset_y}')  # 窗口大小
+root.resizable(False, False)
+root.iconbitmap('green_apple.ico')
 root.bind('<Control-m>', kemu_dir)
 root.bind('<Control-M>', kemu_dir)
 
@@ -392,44 +388,42 @@ help_menu.add_command(label='介绍', command=show_message)
 help_menu.add_command(label='关于', command=about)
 menubar.add_cascade(label='帮助', menu=help_menu)
 
-text1 = ttk.Text(root, width=60, height=6, border=-1)
-text1.pack(pady=15, side=TOP)
+input_text = ttk.Text(root, width=60, height=6, border=-1)
+input_text.pack(pady=10)
 
-text3 = ttk.Text(root, width=60, height=6, border=-1)
-text3.pack(pady=0, side=TOP)
-text3.insert(END, '请选择功能\n')
-text3.tag_config('forever', foreground="green", font=('黑体', 12), spacing3=8, justify=CENTER)
-text3.tag_add('forever', 1.0, END)
-text3.config(state=DISABLED)
-
-buttonbar = ttk.Frame(root)
-buttonbar.pack(padx=0, pady=25, side=BOTTOM)
-
-btn = ttk.Button(master=buttonbar, text='制作答案', compound=LEFT, command=xuanze)
-btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
-
-btn = ttk.Button(master=buttonbar, text='拼接图片', compound=LEFT, command=pinjie)
-btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
-
-btn = ttk.Button(master=buttonbar, text='拆文件名', compound=LEFT, command=pic_name)
-btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
-
-btn = ttk.Button(master=buttonbar, text='增加小题', compound=LEFT, command=pic_point)
-btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
-
-btn = ttk.Button(master=buttonbar, text='添加编号', compound=LEFT, command=pic_num)
-btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
+info_text = ttk.Text(root, width=60, height=5, border=-1)
+info_text.pack(pady=10)
+info_text.insert(END, '请选择功能\n')
+info_text.tag_add('forever', 1.0, END)
+info_text.tag_config('forever', foreground="green", font=('黑体', 12), spacing3=8, justify=CENTER)
+info_text.config(state=DISABLED)
 
 buttonbar2 = ttk.Frame(root)
-buttonbar2.pack(padx=0, pady=0, side=BOTTOM)
+buttonbar2.pack(padx=0, pady=10)
 
 btn = ttk.Button(master=buttonbar2, text='Word转长图', compound=LEFT, command=word_to_images)
-btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
+btn.pack(side=LEFT, ipadx=12, padx=10)
 
 btn = ttk.Button(master=buttonbar2, text='PDF转长图', compound=LEFT, command=pdf_to_images)
-btn.pack(side=LEFT, ipadx=12, padx=10, pady=5)
+btn.pack(side=LEFT, ipadx=12, padx=10)
 
-root.protocol('WM_DELETE_WINDOW', close_handle)  # 点击关闭按钮，触发事件
+buttonbar = ttk.Frame(root)
+buttonbar.pack(padx=0, pady=10)
+
+btn = ttk.Button(master=buttonbar, text='制作答案', compound=LEFT, command=xuanze)
+btn.pack(side=LEFT, ipadx=12, padx=10)
+
+btn = ttk.Button(master=buttonbar, text='拼接图片', compound=LEFT, command=pinjie)
+btn.pack(side=LEFT, ipadx=12, padx=10)
+
+btn = ttk.Button(master=buttonbar, text='拆文件名', compound=LEFT, command=pic_name)
+btn.pack(side=LEFT, ipadx=12, padx=10)
+
+btn = ttk.Button(master=buttonbar, text='增加小题', compound=LEFT, command=pic_point)
+btn.pack(side=LEFT, ipadx=12, padx=10)
+
+btn = ttk.Button(master=buttonbar, text='添加编号', compound=LEFT, command=pic_num)
+btn.pack(side=LEFT, ipadx=12, padx=10)
 
 root.config(menu=menubar)
 root.mainloop()

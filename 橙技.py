@@ -379,7 +379,7 @@ def over():
 def show_message():
     top = ttk.Toplevel()
     top.title('软件介绍')
-    top.geometry(f'600x320+{offset_x+250}+{offset_y+200}')  # 窗口大小
+    top.geometry(f'600x320+{offset_x+240}+{offset_y+180}')  # 窗口大小
     top.maxsize(700, 400)
     top.minsize(500, 200)
 
