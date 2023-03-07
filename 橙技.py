@@ -212,7 +212,6 @@ def xiaofen():
             ws.Cells(max_row + 2, col).Value = f'=MAX({col_name}2:{col_name}{max_row})'
             output_text.insert(END, f'{ws.Cells(max_row + 2, col).Value}\n')
         info_text.insert('end', '题目最高分查找完成\n')
-        info_text.tag_add('forever', 1.0, END)
         # 删除2行临时数据
         ws.Rows(max_row + 1).Delete()
         ws.Rows(max_row + 1).Delete()
@@ -238,7 +237,6 @@ def xiaofen():
         excel.Quit()
 
         info_text.insert(END, '小分表修改完成\n')
-        info_text.tag_add('forever', 1.0, END)
         info_text.yview_moveto(1)
         output_text.focus()
     else:
@@ -286,6 +284,7 @@ def total_score():
             counter += 1
             info_text.insert(END, f'已提交 {counter} 个科目成绩\n')
             info_text.tag_add('forever', 1.0, END)
+            info_text.tag_config('forever', foreground='green', font=('黑体', 11), justify="center", spacing3=5)
             info_text.yview_moveto(1)
 
             choice = messagebox.askyesno('添加确认', '是否继续添加其他科目成绩？')
@@ -371,6 +370,8 @@ def chaifen():
 def over():
     """改变文本颜色，禁用文本框"""
     info_text.tag_add('forever', 1.0, END)
+    # 使用 tag_config() 来改变标签"forever"的文字颜色和大小
+    info_text.tag_config('forever', foreground='green', font=('黑体', 11), justify="center", spacing3=5)
     info_text.config(state=DISABLED)
     info_text.yview_moveto(1)  # 文本更新滚动显示
 
@@ -378,11 +379,11 @@ def over():
 def show_message():
     top = ttk.Toplevel()
     top.title('软件介绍')
-    top.geometry(f'600x320+{offset_x}+{offset_y}')  # 窗口大小
+    top.geometry(f'600x320+{offset_x+240}+{offset_y+180}')  # 窗口大小
     top.maxsize(700, 400)
     top.minsize(500, 200)
 
-    text0 = ttk.Text(top, width=100, height=20, spacing1=10, spacing2=10)
+    text0 = ttk.Text(top, width=100, height=20, spacing2=10, spacing3=15)
     text0.pack()
     text0.insert(END, '题目：每行提取一个最多两位的数字\n'
                       '难度值：把数字放大100倍\n'
@@ -394,8 +395,8 @@ def show_message():
                       '总分：输入考号和单科成绩，生成总分表\n'
                       '拆分：按照小题分数把每个学生的总分拆分成小分\n')
 
-    text0.tag_config('forever', foreground='green', font=('黑体', 12), spacing3=5)
     text0.tag_add('forever', 1.0, END)
+    text0.tag_config('forever', foreground='green', font=('黑体', 12))
     text0.config(state=DISABLED)
 
     top.mainloop()
@@ -440,17 +441,17 @@ help_menu.add_command(label='关于', command=about)
 menubar.add_cascade(label='帮助', menu=help_menu)
 
 label1 = ttk.Label(root, text='原始数据', font=('黑体', 12))
-label1.pack(pady=10, side=TOP)  # 按布局方式放置标签
+label1.pack(pady=10)  # 按布局方式放置标签
 
-input_text = ttk.Text(root, width=120, height=13)
-input_text.pack()
+input_text = ttk.Text(root, height=13)
+input_text.pack(fill=X, padx=100)  # 文本框宽度沿水平方向自适应填充，左右两边空100像素
 input_text.focus()
 
 label2 = ttk.Label(root, text='计算结果', font=('黑体', 12))
-label2.pack(pady=10, side=TOP)
+label2.pack(pady=10)
 
-output_text = ttk.Text(root, width=120, height=13)
-output_text.pack()
+output_text = ttk.Text(root, height=13)
+output_text.pack(fill=X, padx=100)
 output_text.bind('<Control-a>', select_all)  # 绑定事件
 output_text.bind('<Control-A>', select_all)
 output_text.bind('<Control-c>', cp_msg)
@@ -458,14 +459,13 @@ output_text.bind('<Control-C>', cp_msg)
 output_text.bind('<Control-x>', cp_msg)
 output_text.bind('<Control-X>', cp_msg)
 
-info_text = ttk.Text(root, width=120, height=6, border=-1)
-info_text.pack(pady=10, side=TOP)
-info_text.tag_config('forever', foreground='green', font=('黑体', 11), spacing3=5)
+info_text = ttk.Text(root, height=6, border=-1)
+info_text.pack(pady=10, padx=100, fill=X)
 info_text.config(state=DISABLED)
 
 # 按钮区域
 buttonbar = ttk.Frame(root)
-buttonbar.pack(pady=10, side=TOP)
+buttonbar.pack(pady=10)
 
 btn = ttk.Button(master=buttonbar, text='题目', compound=LEFT, command=timu)
 btn.pack(side=LEFT, ipadx=15, padx=10)
