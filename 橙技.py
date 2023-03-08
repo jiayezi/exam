@@ -434,23 +434,23 @@ root.minsize(1000, 750)
 root.iconbitmap('green_apple.ico')
 
 # 菜单
-menubar = ttk.Menu(root)
-help_menu = ttk.Menu(menubar, tearoff=0)
-help_menu.add_command(label='介绍', command=show_message)
-help_menu.add_command(label='关于', command=about)
-menubar.add_cascade(label='帮助', menu=help_menu)
+main_menu = ttk.Menu(root)
+sub_menu = ttk.Menu(main_menu, tearoff=0)
+sub_menu.add_command(label='介绍', command=show_message)
+sub_menu.add_command(label='关于', command=about)
+main_menu.add_cascade(label='帮助', menu=sub_menu)
 
 label1 = ttk.Label(root, text='原始数据', font=('黑体', 12))
 label1.pack(pady=10)  # 按布局方式放置标签
 
-input_text = ttk.Text(root, height=13)
+input_text = ttk.Text(root, height=12)
 input_text.pack(fill=X, padx=100)  # 文本框宽度沿水平方向自适应填充，左右两边空100像素
 input_text.focus()
 
 label2 = ttk.Label(root, text='计算结果', font=('黑体', 12))
 label2.pack(pady=10)
 
-output_text = ttk.Text(root, height=13)
+output_text = ttk.Text(root, height=12)
 output_text.pack(fill=X, padx=100)
 output_text.bind('<Control-a>', select_all)  # 绑定事件
 output_text.bind('<Control-A>', select_all)
@@ -464,37 +464,37 @@ info_text.pack(pady=10, padx=100, fill=X)
 info_text.config(state=DISABLED)
 
 # 按钮区域
-buttonbar = ttk.Frame(root)
-buttonbar.pack(pady=10)
+buttonbar = ttk.Labelframe(root, text='选择功能')
+buttonbar.pack(pady=0,  padx=100, ipady=20)
 
 btn = ttk.Button(master=buttonbar, text='题目', compound=LEFT, command=timu)
-btn.pack(side=LEFT, ipadx=15, padx=10)
+btn.pack(side=LEFT, padx=20)
 
 btn = ttk.Button(master=buttonbar, text='难度值', compound=LEFT, command=nandu)
-btn.pack(side=LEFT, ipadx=15, padx=10)
+btn.pack(side=LEFT, padx=20)
 
 btn = ttk.Button(master=buttonbar, text='单选答案', compound=LEFT, command=xuanzeti)
-btn.pack(side=LEFT, ipadx=15, padx=10)
+btn.pack(side=LEFT, padx=18)
 
 btn = ttk.Button(master=buttonbar, text='能力要求', compound=LEFT, command=nengli)
-btn.pack(side=LEFT, ipadx=15, padx=10)
+btn.pack(side=LEFT, padx=15)
 
 btn = ttk.Button(master=buttonbar, text='OMR', compound=LEFT, command=omr)
-btn.pack(side=LEFT, ipadx=15, padx=10)
+btn.pack(side=LEFT, padx=15)
 
 btn = ttk.Button(master=buttonbar, text='多选OMR', compound=LEFT, command=buding)
-btn.pack(side=LEFT, ipadx=15, padx=10)
+btn.pack(side=LEFT, padx=15)
 
 btn = ttk.Button(master=buttonbar, text='小分表', compound=LEFT, command=xiaofen)
-btn.pack(side=LEFT, ipadx=15, padx=10)
+btn.pack(side=LEFT, padx=18)
 
 btn = ttk.Button(master=buttonbar, text='总分表', compound=LEFT, command=total_score)
-btn.pack(side=LEFT, ipadx=15, padx=10)
+btn.pack(side=LEFT, padx=20)
 
 btn = ttk.Button(master=buttonbar, text='拆分', compound=LEFT, command=chaifen)
-btn.pack(side=LEFT, ipadx=15, padx=10)
+btn.pack(side=LEFT, padx=20)
 
 root.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，点击关闭时按钮，触发事件
 
-root.config(menu=menubar)
+root.config(menu=main_menu)
 root.mainloop()
