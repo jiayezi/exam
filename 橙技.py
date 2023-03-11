@@ -266,7 +266,7 @@ def calculate_total_score():
     # 存储考号和分数的字典
     student_dict = {}
     titles = ['考号']
-    for counter, data in enumerate(all_data_list):
+    for index, data in enumerate(all_data_list):
         data = data.strip()
         row_list = data.split('\n')
 
@@ -282,16 +282,16 @@ def calculate_total_score():
 
                 # 如果是新增的考号，为保证科目与分数对应，需要让该考号的之前的科目为0分
                 if student_id not in student_dict:
-                    student_dict[student_id] = [0.0 for _ in range(counter + 1)]
-                student_dict[student_id][counter] = score
+                    student_dict[student_id] = [0.0 for _ in range(index + 1)]
+                student_dict[student_id][index] = score
         except IndexError:
             info_text.insert(END, '数据不完整，处理失败，请同时提交考号和成绩 (ー_ー)!!\n')
             return
         except ValueError:
             info_text.insert(END, '成绩字段不是纯数字，处理失败 (ー_ー)!!\n')
             return
-        # 每添加一个科目，就添加一列0分，如果考号的科目有分，就用分数替换0，否则就保持0分
-        if counter != len(all_data_list) - 1:
+        # 把所有学生的下一个科目的分数初始化为0分
+        if index < len(all_data_list) - 1:
             for key in student_dict:
                 student_dict[key].append(0.0)
 
