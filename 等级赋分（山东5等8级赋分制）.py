@@ -21,6 +21,7 @@ ws = wb.active
 ws_rows = []
 for row in ws.values:
     ws_rows.append(list(row))
+wb.close()
 student_data = ws_rows[1:]
 ws_title = ws_rows[0]
 subjects = ws_title[extra:23]
@@ -127,6 +128,7 @@ file_path = filedialog.asksaveasfilename(title='请选择文件存储路径', in
                                          filetypes=[('Excel', '.xlsx')], defaultextension='.xlsx')
 if file_path:
     wb.save(file_path)
+    wb.close()
 
 """
   * @param m 原始分开始
