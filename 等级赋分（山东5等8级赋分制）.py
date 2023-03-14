@@ -16,7 +16,7 @@ file_path = filedialog.askopenfilename(title='请选择Excel文件', initialdir=
                                        filetypes=[('Excel', '.xlsx')], defaultextension='.xlsx')
 if not file_path:
     exit()
-wb = load_workbook(file_path)
+wb = load_workbook(file_path, read_only=True)
 ws = wb.active
 ws_rows = []
 for row in ws.values:
@@ -117,8 +117,8 @@ for sub_index, subject in enumerate(subjects):
     ws_title.append(f'{subject}排名')
 
 # 写入Excel文件
-wb = Workbook()
-ws = wb.active
+wb = Workbook(write_only=True)
+ws = wb.create_sheet()
 ws.append(ws_title)
 for row in student_data:
     ws.append(row)
