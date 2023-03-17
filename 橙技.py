@@ -93,27 +93,30 @@ def skill_requirements():
 
     data = input_text.get(1.0, END)
     data = data.strip()
+    if not data:
+        return
+
     data_list = data.split('\n')
+    title = data_list[0]
+    rows = data_list[1:]
+    title_list = title.split('\t')
 
-    if data:
-        title = data_list[0]
-        rows = data_list[1:]
-        title_list = title.split('\t')
+    text = ''
+    for row_index, row in enumerate(rows):
+        row_list = row.split('\t')
+        blank = True
+        for i, mark in enumerate(row_list):
+            if mark.strip():
+                blank = False
+                text += f'{title_list[i]}/'
+        if blank:
+            text += f'\n'
+            info_text.insert('end', f'第 {row_index + 2} 行没有符号\n')
+        text = text[:-1]+'\n'
+    output_text.insert('end', text[:-1])
 
-        text = ''
-        for row_index, row in enumerate(rows):
-            row_list = row.split('\t')
-            for i, mark in enumerate(row_list):
-                if mark.strip():
-                    text += f'{title_list[i]}\n'
-                    break
-            else:
-                text += f'\n'
-                info_text.insert('end', f'第 {row_index + 2} 行没有符号\n')
-        output_text.insert('end', text[:-1])
-
-        info_text.insert('end', '全部处理完成\n')
-        output_text.focus()
+    info_text.insert('end', '全部处理完成\n')
+    output_text.focus()
     over()
 
 
