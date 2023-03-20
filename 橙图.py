@@ -1,6 +1,5 @@
 import os
 import shutil
-import tkinter
 from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话框，文件访问对话框
 
 import fitz  # pymupdf库，操作PDF文件，可转换成图片
