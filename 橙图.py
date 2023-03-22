@@ -11,7 +11,7 @@ from ttkbootstrap.constants import *
 from win32com import client  # 操作office文档，转换格式
 
 
-# 图片裁剪、制作选择题时选择起始数字
+# 未完成功能：图片裁剪
 
 def initialize():
     """取消冻结文本框，清空文本框"""
@@ -126,46 +126,72 @@ def pdf_to_images(pdf_path=None):
     over()
 
 
-def xuanze():
+def choice_level():
     """根据字母输出对应的字母图片"""
-    initialize()
-    data = input_text.get(1.0, END)
-    data = data.strip()
-    data_list = data.split('\n')
-    if data:
+    def choice():
+        initialize()
+        data = text0.get(1.0, END)
+        data = data.strip()
         img_path = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
-        if img_path:
-            num = 0
-            for s in data_list:
-                num += 1
-                if len(s) == 1:
-                    shutil.copyfile(f'img/{s}.png', f'{img_path}/{num}.png')
+        entry_data = start_entry.get()
+        start = 0
+        if entry_data and entry_data.isdigit():
+            start = int(entry_data) - 1
+        if not (data and img_path):
+            top.destroy()
+            info_text.insert(END, '数据不完整\n')
+            over()
+            return
+        data_list = data.split('\n')
 
-                # 处理多选题的答案
-                elif len(s) > 1:
-                    img_list = []
-                    for i in s:
-                        img_list.append(Image.open(f'img/{i}.png'))
+        num = 0
+        for s in data_list:
+            if s not in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
+                info_text.insert(END, f'文件“{s}”不存在\n')
+                over()
+                return
+            num += 1
+            if len(s) == 1:
+                shutil.copyfile(f'img/{s}.png', f'{img_path}/{num+start}.png')
 
-                    width = 0
-                    height = 0
-                    for img in img_list:
-                        w, h = img.size
-                        width += w
-                        height = max(height, h)
+            # 处理多选题的答案
+            elif len(s) > 1:
+                img_list = []
+                for i in s:
+                    img_list.append(Image.open(f'img/{i}.png'))
 
-                    result = Image.new(mode='RGB', size=(width, height), color=0xffffff)
-                    width = 0
-                    for img in img_list:
-                        w, h = img.size
-                        result.paste(img, box=(width, round(height / 2 - h / 2)))
-                        width += w
-                    result.save(f'{img_path}/{num}.png')
-            info_text.insert(END, f'制作了{num}个答案\n')
-    else:
-        info_text.insert(END, '请先输入答案\n')
+                width = 0
+                height = 0
+                for img in img_list:
+                    w, h = img.size
+                    width += w
+                    height = max(height, h)
 
-    over()
+                result = Image.new(mode='RGB', size=(width, height), color=0xffffff)
+                width = 0
+                for img in img_list:
+                    w, h = img.size
+                    result.paste(img, box=(width, round(height / 2 - h / 2)))
+                    width += w
+                result.save(f'{img_path}/{num+start}.png')
+        info_text.insert(END, f'制作了{num}个答案\n')
+        top.destroy()
+        over()
+
+    top = ttk.Toplevel()
+    top.title('制作答案')
+    top.geometry(f'500x300+{offset_x + 50}+{offset_y + 60}')  # 窗口大小
+    top.maxsize(600, 500)
+    top.minsize(350, 200)
+    top.iconbitmap('green_apple.ico')
+    text0 = ttk.Text(top, width=600, height=10)
+    text0.pack()
+    start_entry = ttk.Entry(top)
+    start_entry.pack(side=TOP, pady=10)
+    btn = ttk.Button(master=top, text='提交', compound=CENTER, command=choice)
+    btn.pack(side=TOP, ipadx=12, pady=10)
+
+    top.mainloop()
 
 
 def pinjie():
@@ -389,9 +415,6 @@ help_menu.add_command(label='介绍', command=show_message)
 help_menu.add_command(label='关于', command=about)
 menubar.add_cascade(label='帮助', menu=help_menu)
 
-input_text = ttk.Text(root, width=60, height=6, border=-1)
-input_text.pack(pady=10)
-
 info_text = ttk.Text(root, width=60, height=5, border=-1)
 info_text.pack(pady=10)
 info_text.insert(END, '请选择功能\n')
@@ -411,7 +434,7 @@ btn.pack(side=LEFT, ipadx=12, padx=10)
 buttonbar = ttk.Frame(root)
 buttonbar.pack(padx=0, pady=10)
 
-btn = ttk.Button(master=buttonbar, text='制作答案', compound=LEFT, command=xuanze)
+btn = ttk.Button(master=buttonbar, text='制作答案', compound=LEFT, command=choice_level)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
 btn = ttk.Button(master=buttonbar, text='拼接图片', compound=LEFT, command=pinjie)
