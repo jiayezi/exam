@@ -11,7 +11,7 @@ from ttkbootstrap.constants import *
 from win32com import client  # 操作office文档，转换格式
 
 
-# todo : 图片裁剪、制作选择题时选择起始数字
+# 图片裁剪、制作选择题时选择起始数字
 
 def initialize():
     """取消冻结文本框，清空文本框"""

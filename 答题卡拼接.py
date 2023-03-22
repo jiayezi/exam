@@ -3,7 +3,7 @@ from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
 from tkinter import filedialog
 
-# todo 制作可视化界面
+#  制作可视化界面
 
 
 def splice(filesname, output_path, quality, del_name=''):
