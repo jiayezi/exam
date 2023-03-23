@@ -4,10 +4,12 @@ from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话�
 
 import fitz  # pymupdf库，操作PDF文件，可转换成图片
 import ttkbootstrap as ttk
+from ttkbootstrap.toast import ToastNotification
+from ttkbootstrap.constants import *
 from PIL import Image
 from PIL import UnidentifiedImageError
 from openpyxl import load_workbook
-from ttkbootstrap.constants import *
+
 from win32com import client  # 操作office文档，转换格式
 
 
@@ -108,9 +110,6 @@ def pdf_to_images(pdf_path=None):
             pm = page.get_pixmap(dpi=150)
             pm.save(f'tmp/{page.number:0>3d}.png')
         pdf.close()
-
-        info_text.insert(END, '已转换成图片\n')
-        info_text.tag_add('forever', 1.0, END)
 
         long_png('tmp', file_name)
 
@@ -227,8 +226,8 @@ def choice_level():
                     width += w
                 result.save(f'{img_path}/{counter + start}.png')
         info_text.insert(END, f'制作了{counter}个答案\n')
-        top.destroy()
         over()
+        top.destroy()
 
     top = ttk.Toplevel()
     top.title('制作答案')
@@ -263,10 +262,10 @@ def splice():
     initialize()
     img_list = os.listdir(img_path)
     for img in img_list:
-        if os.path.exists(img_path2 + os.sep + img):
+        if os.path.exists(img_path2 + '/' + img):
             try:
-                img1 = Image.open(img_path + os.sep + img)
-                img2 = Image.open(img_path2 + os.sep + img)
+                img1 = Image.open(img_path + '/' + img)
+                img2 = Image.open(img_path2 + '/' + img)
             except UnidentifiedImageError:
                 info_text.insert(END, '一个文件不是图片格式，打开失败\n')
                 continue
@@ -277,8 +276,8 @@ def splice():
             result = Image.new(mode='RGB', size=(new_width + 10, new_height), color=(255, 255, 255))
             result.paste(img1, box=(5, 0))
             result.paste(img2, box=(5, img1_height))
-            result.save(img_path + os.sep + img)
-            os.remove(img_path2 + os.sep + img)
+            result.save(img_path + '/' + img)
+            os.remove(img_path2 + '/' + img)
         else:
             info_text.insert(END, f'{img[:-4]}没有答案\n')
     # 删除空文件夹
@@ -318,6 +317,7 @@ def copy_rename():
 
 
 def rename_id():
+    # 待优化
     """把文件夹里的图片名改成Excel里的编号，复制文件夹并改名"""
     file_name = filedialog.askopenfilename(title='请选择Excel文件',
                                            initialdir='F:/用户目录/桌面/',
@@ -336,14 +336,13 @@ def rename_id():
     while True:
         num = simpledialog.askstring(' ', '请输入科目编号：')
         if num in subject:
-            info_text.insert(END, f'科目是 {subject[num]}\n')
-            info_text.tag_add('forever', 1.0, END)
+            ToastNotification(title='信息', message=f'科目是 {subject[num]}', duration=3000, position=(0, 220, 's')) \
+                .show_toast()
         else:
             subject[num] = simpledialog.askstring(' ', '没有找到科目，请输入科目名称：')
 
         img_dir = filedialog.askdirectory(title='请选择图片文件夹', initialdir='F:/用户目录/桌面/')
         if not img_dir:
-            info_text.insert(END, '没有选择图片文件夹\n')
             return
 
         complete = True
@@ -388,7 +387,7 @@ def add_point():
         return
     initialize()
     point_str = simpledialog.askstring('输入', '请输入小题数量：')
-    if point_str is None or point_str.strip() == '' or not point_str.isdigit():
+    if point_str is None or not point_str.isdigit():
         info_text.insert(END, '必须输入纯数字\n')
         over()
         return
@@ -404,26 +403,61 @@ def add_point():
 
 
 def subject_dir(event):
-    choice = messagebox.askquestion(title=' ', message='是否分科？')
-    if choice == 'yes':
-        kemu = ('语文', '数学文', '数学理', '英语', '政治', '历史', '地理', '物理', '化学', '生物')
-    else:
-        kemu = ('语文', '数学', '英语', '政治', '历史', '地理', '物理', '化学', '生物')
-    path = filedialog.askdirectory(title='请选择目录')
-    if not path:
-        return
-    try:
-        os.mkdir(path + os.sep + '题干图片')
-        for d in kemu:
-            os.mkdir(f'{path}/题干图片/{d}')
-            os.mkdir(f'{path}/题干图片/{d}答案')
-    except FileExistsError:
-        pass
+    def make_dir():
+        path = filedialog.askdirectory(title='请选择目录')
+        if not path:
+            return
+        try:
+            os.mkdir(path + os.sep + '题干图片')
+            for item in var:
+                dir_name = item.get()
+                if not dir_name:
+                    continue
+                os.mkdir(f'{path}/题干图片/{dir_name}')
+                os.mkdir(f'{path}/题干图片/{dir_name}答案')
+        except FileExistsError:
+            pass
+        top.destroy()
+
+    top = ttk.Toplevel()
+    top.title('创建科目目录')
+    top.geometry(f'500x200+{offset_x + 50}+{offset_y + 50}')  # 窗口大小
+    top.iconbitmap('green_apple.ico')
+    top.resizable(False, False)
+    lb = ttk.Label(top, text='选择科目：', font=('微软雅黑', 12))
+    lb.pack(pady=10)
+
+    # 用循环方式添加两排复选框
+    subjects = ('语文', '数学', '数学文', '数学理', '英语', '政治', '历史', '地理', '物理', '化学', '生物')
+    var = []
+    sj_frame = ttk.Frame(top)
+    sj_frame.pack(padx=0, pady=10)
+    for subject in subjects[:5]:
+        var.append(ttk.StringVar())
+        cb = ttk.Checkbutton(sj_frame, text=subject, variable=var[-1], onvalue=subject, offvalue='')
+        cb.pack(side=LEFT, padx=5)
+    sj_frame2 = ttk.Frame(top)
+    sj_frame2.pack(padx=0, pady=10)
+    for subject in subjects[5:]:
+        var.append(ttk.StringVar())
+        cb = ttk.Checkbutton(sj_frame2, text=subject, variable=var[-1], onvalue=subject, offvalue='')
+        cb.pack(side=LEFT, padx=5)
+
+    # 默认全选
+    for i, subject in enumerate(subjects):
+        var[i].set(subject)
+
+    btn = ttk.Button(top, text='创建', compound=CENTER, command=make_dir)
+    btn.pack(ipadx=12, pady=15)
+
+    top.mainloop()
 
 
 def over():
     """改变文本颜色，禁用文本框"""
     info_text.tag_add('forever', 1.0, END)
+    # 使用 tag_config() 来改变标签"forever"的文字颜色和大小
+    info_text.tag_config('forever', foreground='green', font=('黑体', 12), justify="center", spacing3=5)
     info_text.config(state=DISABLED)
     info_text.yview_moveto(1)  # 文本更新滚动显示
 
