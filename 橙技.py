@@ -5,6 +5,7 @@
 import os
 from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话框，文件访问对话框
 import ttkbootstrap as ttk
+from ttkbootstrap.toast import ToastNotification
 from ttkbootstrap.constants import *
 from re import search
 from openpyxl import Workbook
@@ -89,13 +90,11 @@ def single_choice():
 
 def skill_requirements():
     """把符号替换成该列对应的文字"""
-    initialize()
-
     data = input_text.get(1.0, END)
     data = data.strip()
     if not data:
         return
-
+    initialize()
     data_list = data.split('\n')
     title = data_list[0]
     rows = data_list[1:]
@@ -167,13 +166,12 @@ def multiple_OMR():
 
 def format_table():
     """把小分表修改成指定格式的Excel文档，方便上传"""
-    initialize()
-
     # 打开Excel表格
     open_path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
                                            defaultextension='.xlsx')
     if not open_path:
         return
+    initialize()
     excel = client.Dispatch("Excel.Application")
     excel.Visible = False
     excel.DisplayAlerts = False
@@ -247,118 +245,172 @@ def format_table():
     over()
 
 
-def calculate_total_score():
+def total_score_level():
     """把每个学生的单科成绩相加，计算总分"""
-    initialize()
-
     all_data_list = []
     counter = 0
-    while True:
-        data = simpledialog.askstring('输入成绩', '请输入考号和单科成绩：')
-        if not data:
+
+    def add_score_data():
+        data = text0.get(1.0, END)
+        if not data.strip():
             return
+        initialize()
+        nonlocal all_data_list
+        nonlocal counter
         all_data_list.append(data)
         counter += 1
-        info_text.insert(END, f'已提交 {counter} 个科目成绩\n')
-        info_text.tag_add('forever', 1.0, END)
-        info_text.tag_config('forever', foreground='green', font=('黑体', 11), justify="center", spacing3=5)
-        choice = messagebox.askyesno('添加确认', '是否继续添加其他科目成绩？')
-        if not choice:
-            break
+        ToastNotification(title='信息', message=f'已提交 {counter} 个科目成绩', duration=3000, position=(0, 220, 's'))\
+            .show_toast()
+        over()
+        text0.delete(1.0, END)
+        text0.focus()
 
-    # 存储考号和分数的字典
-    student_dict = {}
-    titles = ['考号']
-    for index, data in enumerate(all_data_list):
-        data = data.strip()
-        row_list = data.split('\n')
-
-        try:
-            for row in row_list:
-                singe_list = row.split('\t')
-                # 判断考号
-                student_id = singe_list[0]
-                if len(student_id) < 5 or not student_id.isdigit():
-                    titles.append(singe_list[1])
-                    continue
-                score = float(singe_list[1])
-
-                # 如果是新增的考号，为保证科目与分数对应，需要让该考号的之前的科目为0分
-                if student_id not in student_dict:
-                    student_dict[student_id] = [0.0 for _ in range(index + 1)]
-                student_dict[student_id][index] = score
-        except IndexError:
-            info_text.insert(END, '数据不完整，处理失败，请同时提交考号和成绩 (ー_ー)!!\n')
+    def calculate_total_score():
+        nonlocal all_data_list
+        if not all_data_list:
             return
-        except ValueError:
-            info_text.insert(END, '成绩字段不是纯数字，处理失败 (ー_ー)!!\n')
-            return
-        # 把所有学生的下一个科目的分数初始化为0分
-        if index < len(all_data_list) - 1:
-            for key in student_dict:
-                student_dict[key].append(0.0)
+        initialize()
+        # 存储考号和分数的字典
+        student_dict = {}
+        titles = ['考号']
+        for index, data in enumerate(all_data_list):
+            data = data.strip()
+            row_list = data.split('\n')
 
-    titles.append('总分')
-    wb = Workbook()
-    ws = wb.active
-    ws.title = '总分表'
+            try:
+                for row in row_list:
+                    singe_list = row.split('\t')
+                    # 判断考号
+                    student_id = singe_list[0]
+                    if len(student_id) < 5 or not student_id.isdigit():
+                        titles.append(singe_list[1])
+                        continue
+                    score = float(singe_list[1])
 
-    # 添加首行
-    if len(titles) > 2:
-        ws.append(titles)
-    else:
-        row_data = ['考号'] + list(range(len(all_data_list))) + ['总分']
-        ws.append(row_data)
-    # 添加数据
-    for row_index, key in enumerate(student_dict):
-        row_data = [key]
-        row_data.extend(student_dict[key])
-        row_data.append(sum(student_dict[key]))
-        ws.append(row_data)
+                    # 如果是新增的考号，为保证科目与分数对应，需要让该考号的之前的科目为0分
+                    if student_id not in student_dict:
+                        student_dict[student_id] = [0.0 for _ in range(index + 1)]
+                    student_dict[student_id][index] = score
+            except IndexError:
+                info_text.insert(END, '数据不完整，处理失败，请同时提交考号和成绩 (ー_ー)!!\n')
+                top.destroy()
+                return
+            except ValueError:
+                info_text.insert(END, '成绩字段不是纯数字，处理失败 (ー_ー)!!\n')
+                top.destroy()
+                return
+            # 把所有学生的下一个科目的分数初始化为0分
+            if index < len(all_data_list) - 1:
+                for key in student_dict:
+                    student_dict[key].append(0.0)
 
-    file_path = filedialog.asksaveasfilename(title='请选择文件存储路径',
-                                             initialdir='F:/用户目录/桌面/',
-                                             initialfile='总分表',
-                                             filetypes=[('Excel', '.xlsx')],
-                                             defaultextension='.xlsx')
-    if file_path:
-        wb.save(file_path)
-        info_text.insert(END, '文件保存成功\n')
-        wb.close()
-    over()
+        titles.append('总分')
+        wb = Workbook()
+        ws = wb.active
+        ws.title = '总分表'
+
+        # 添加首行
+        if len(titles) > 2:
+            ws.append(titles)
+        else:
+            row_data = ['考号'] + list(range(len(all_data_list))) + ['总分']
+            ws.append(row_data)
+        # 添加数据
+        for row_index, key in enumerate(student_dict):
+            row_data = [key]
+            row_data.extend(student_dict[key])
+            row_data.append(sum(student_dict[key]))
+            ws.append(row_data)
+
+        file_path = filedialog.asksaveasfilename(title='请选择文件存储路径',
+                                                 initialdir='F:/用户目录/桌面/',
+                                                 initialfile='总分表',
+                                                 filetypes=[('Excel', '.xlsx')],
+                                                 defaultextension='.xlsx')
+        if file_path:
+            wb.save(file_path)
+            info_text.insert(END, '文件保存成功\n')
+            wb.close()
+        top.destroy()
+        over()
+
+    top = ttk.Toplevel()
+    top.title('计算总分')
+    top.geometry(f'800x600+{offset_x + 150}+{offset_y + 60}')  # 窗口大小
+    top.iconbitmap('green_apple.ico')
+    top.resizable(False, False)
+
+    lb = ttk.Label(top, text='考号和单科成绩：', font=('微软雅黑', 12))
+    lb.pack(pady=10)
+    text0 = ttk.Text(top, width=100, height=25)
+    text0.pack()
+    text0.focus()
+    buttonbar = ttk.Frame(top)
+    buttonbar.pack(padx=0, pady=10)
+    btn = ttk.Button(master=buttonbar, text='提交分数', compound=CENTER, command=add_score_data)
+    btn.pack(side=LEFT, ipadx=10, padx=10, pady=10)
+    btn = ttk.Button(master=buttonbar, text='计算总分', compound=CENTER, command=calculate_total_score)
+    btn.pack(side=LEFT, ipadx=10, padx=10, pady=10)
+
+    top.mainloop()
 
 
-def split_score():
+def split_score_level():
     """按小题的分数拆分总分"""
-    initialize()
+    def split_score():
+        data = left_text.get(1.0, END).strip()
+        small_data = mid_text.get(1.0, END).strip()
+        if not (data and small_data):
+            return
+        right_text.delete(1.0, END)
+        total_score_list = data.split('\n')
+        small_score_list = small_data.split('\n')
+        right_text.config(state=NORMAL)
+        text = ''
+        try:
+            for total_score in total_score_list:
+                total_score = float(total_score)
+                for small_score in small_score_list:
+                    small_score = float(small_score)
+                    if total_score > small_score:
+                        text += f'{small_score}\t'
+                        total_score -= small_score
+                    else:
+                        text += f'{total_score}\t'
+                        total_score = 0
+                text = text[:-1]+'\n'
+        except ValueError:
+            ToastNotification(title='信息', message='总分或题目分不是纯数字，拆分失败 (ー_ー)!!', duration=3000,
+                              position=(0, 220, 's')).show_toast()
+        else:
+            right_text.insert(END, text[:-1])
+            ToastNotification(title='信息', message='拆分完毕', duration=3000, position=(0, 220, 's')).show_toast()
+            right_text.focus()
 
-    data = input_text.get(1.0, END).strip()
-    total_score_list = data.split('\n')
+    top = ttk.Toplevel()
+    top.title('拆分')
+    top.geometry(f'800x600+{offset_x + 150}+{offset_y + 60}')  # 窗口大小
+    top.iconbitmap('green_apple.ico')
+    top.resizable(False, False)
 
-    small_data = simpledialog.askstring('提交分数', '请输入试题结构的题目分数：')
-    if not small_data:
-        return
-    small_data = small_data.strip()
-    small_score_list = small_data.split('\n')
-    try:
-        for total_score in total_score_list:
-            total_score = float(total_score)
-            for small_score in small_score_list:
-                small_score = float(small_score)
-                if total_score >= small_score:
-                    output_text.insert('end', f'{small_score}\t')
-                    total_score -= small_score
-                else:
-                    output_text.insert('end', f'{total_score}\t')
-                    total_score = 0
-            output_text.insert('end', '\n')
-    except ValueError:
-        info_text.insert('end', '总分或题目分不是纯数字，拆分失败 (ー_ー)!!\n')
-    else:
-        info_text.insert('end', f'拆分完毕\n')
-        output_text.focus()
+    lb1 = ttk.Label(top, text='总分', font=('微软雅黑', 12))
+    lb1.grid(row=0, column=0, pady=10)
+    lb2 = ttk.Label(top, text='小题满分', font=('微软雅黑', 12))
+    lb2.grid(row=0, column=1, pady=10)
+    lb3 = ttk.Label(top, text='小分', font=('微软雅黑', 12))
+    lb3.grid(row=0, column=2, pady=10)
 
-    over()
+    left_text = ttk.Text(top, width=10, height=25)
+    left_text.grid(row=1, column=0, padx=10)
+    mid_text = ttk.Text(top, width=10, height=25)
+    mid_text.grid(row=1, column=1, padx=10)
+    right_text = ttk.Text(top, width=80, height=25, state=DISABLED)
+    right_text.grid(row=1, column=2, padx=10)
+
+    btn = ttk.Button(master=top, text='计算', compound=LEFT, command=split_score)
+    btn.grid(row=2, column=0, ipadx=10, pady=30, columnspan=3)
+
+    top.mainloop()
 
 
 def over():
@@ -482,10 +534,10 @@ btn.pack(side=LEFT, padx=15)
 btn = ttk.Button(master=buttonbar, text='小分表', compound=LEFT, command=format_table)
 btn.pack(side=LEFT, padx=18)
 
-btn = ttk.Button(master=buttonbar, text='总分表', compound=LEFT, command=calculate_total_score)
+btn = ttk.Button(master=buttonbar, text='总分表', compound=LEFT, command=total_score_level)
 btn.pack(side=LEFT, padx=20)
 
-btn = ttk.Button(master=buttonbar, text='拆分', compound=LEFT, command=split_score)
+btn = ttk.Button(master=buttonbar, text='拆分', compound=LEFT, command=split_score_level)
 btn.pack(side=LEFT, padx=20)
 
 root.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，点击关闭时按钮，触发事件
