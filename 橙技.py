@@ -259,7 +259,7 @@ def total_score_level():
         nonlocal counter
         all_data_list.append(data)
         counter += 1
-        ToastNotification(title='提示', message=f'已提交 {counter} 个科目成绩', duration=3000, position=(0, 220, 's'))\
+        ToastNotification(title='信息', message=f'已提交 {counter} 个科目成绩', duration=3000, position=(0, 220, 's'))\
             .show_toast()
         over()
         text0.delete(1.0, END)
@@ -359,31 +359,33 @@ def split_score_level():
     """按小题的分数拆分总分"""
     def split_score():
         data = left_text.get(1.0, END).strip()
-        small_data = right_text.get(1.0, END).strip()
+        small_data = mid_text.get(1.0, END).strip()
         if not (data and small_data):
             return
-        initialize()
+        right_text.delete(1.0, END)
         total_score_list = data.split('\n')
         small_score_list = small_data.split('\n')
+        right_text.config(state=NORMAL)
+        text = ''
         try:
             for total_score in total_score_list:
                 total_score = float(total_score)
                 for small_score in small_score_list:
                     small_score = float(small_score)
-                    if total_score >= small_score:
-                        output_text.insert('end', f'{small_score}\t')
+                    if total_score > small_score:
+                        text += f'{small_score}\t'
                         total_score -= small_score
                     else:
-                        output_text.insert('end', f'{total_score}\t')
+                        text += f'{total_score}\t'
                         total_score = 0
-                output_text.insert('end', '\n')
+                text = text[:-1]+'\n'
         except ValueError:
-            info_text.insert('end', '总分或题目分不是纯数字，拆分失败 (ー_ー)!!\n')
+            ToastNotification(title='信息', message='总分或题目分不是纯数字，拆分失败 (ー_ー)!!', duration=3000,
+                              position=(0, 220, 's')).show_toast()
         else:
-            info_text.insert('end', f'拆分完毕\n')
-            output_text.focus()
-
-        over()
+            right_text.insert(END, text[:-1])
+            ToastNotification(title='信息', message='拆分完毕', duration=3000, position=(0, 220, 's')).show_toast()
+            right_text.focus()
 
     top = ttk.Toplevel()
     top.title('拆分')
@@ -393,16 +395,20 @@ def split_score_level():
 
     lb1 = ttk.Label(top, text='总分', font=('微软雅黑', 12))
     lb1.grid(row=0, column=0, pady=10)
-    lb2 = ttk.Label(top, text='小分', font=('微软雅黑', 12))
+    lb2 = ttk.Label(top, text='小题满分', font=('微软雅黑', 12))
     lb2.grid(row=0, column=1, pady=10)
+    lb3 = ttk.Label(top, text='小分', font=('微软雅黑', 12))
+    lb3.grid(row=0, column=2, pady=10)
 
-    left_text = ttk.Text(top, width=50, height=25)
+    left_text = ttk.Text(top, width=10, height=25)
     left_text.grid(row=1, column=0, padx=10)
-    right_text = ttk.Text(top, width=50, height=25)
-    right_text.grid(row=1, column=1, padx=10)
+    mid_text = ttk.Text(top, width=10, height=25)
+    mid_text.grid(row=1, column=1, padx=10)
+    right_text = ttk.Text(top, width=80, height=25, state=DISABLED)
+    right_text.grid(row=1, column=2, padx=10)
 
     btn = ttk.Button(master=top, text='计算', compound=LEFT, command=split_score)
-    btn.grid(row=2, column=0, ipadx=10, pady=20, columnspan=2)
+    btn.grid(row=2, column=0, ipadx=10, pady=30, columnspan=3)
 
     top.mainloop()
 
