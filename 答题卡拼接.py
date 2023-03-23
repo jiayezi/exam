@@ -30,7 +30,7 @@ for i in range(0, len(img_list), 2):
 
 output_path = filedialog.askdirectory(title='请选择合并文件夹', initialdir='F:/用户目录/桌面/')
 
-with ThreadPoolExecutor(max_workers=16) as pool:
+with ThreadPoolExecutor(max_workers=32) as pool:
     for filesname in splice_file_list:
-        pool.submit(splice, filesname=filesname, output_path=output_path, quality=20, del_name='_full_1')  # 提交任务
+        pool.submit(splice, filesname=filesname, output_path=output_path, quality=33, del_name='_full_1')  # 提交任务
 
