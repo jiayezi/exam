@@ -11,8 +11,6 @@ from ttkbootstrap.constants import *
 from win32com import client  # 操作office文档，转换格式
 
 
-# 未完成功能：图片裁剪
-
 def initialize():
     """取消冻结文本框，清空文本框"""
     info_text.config(state=NORMAL)
@@ -126,17 +124,71 @@ def pdf_to_images(pdf_path=None):
     over()
 
 
+def cut_out_level():
+    """裁剪图片"""
+
+    def cut_out():
+        img_list = filedialog.askopenfilenames(title='请选择图片文件',
+                                               filetypes=[('PNG', '.png'), ('JPG', '.jpg')])
+        if not img_list:
+            top.destroy()
+            return
+
+        initialize()
+        data_tuple = (left_sb.get(), top_sb.get(), right_sb.get(), bottom_sb.get())
+        pixel_list = [0, 0, 0, 0]
+        for i, value in enumerate(data_tuple):
+            if value.isdigit():
+                pixel_list[i] = int(value)
+
+        for img in img_list:
+            image = Image.open(img)
+            # 前两个坐标点是左上角坐标，后两个坐标点是右下角坐标，width在前， height在后
+            box = (pixel_list[0], pixel_list[1], image.width - pixel_list[2], image.height - pixel_list[3])
+            image = image.crop(box)
+            image.save(img, quality=95, optimize=True)
+        top.destroy()
+        info_text.insert(END, '裁剪完毕')
+        over()
+
+    top = ttk.Toplevel()
+    top.title('裁剪图片')
+    top.geometry(f'400x300+{offset_x + 100}+{offset_y + 60}')  # 窗口大小
+    top.iconbitmap('green_apple.ico')
+    top.resizable(False, False)
+
+    lb = ttk.Label(top, text='请输入四边需要裁剪的像素：', font=('微软雅黑', 12))
+    lb.pack(pady=10)
+
+    entry_bar = ttk.Frame(top)
+    entry_bar.pack(padx=0, pady=10)
+    top_sb = ttk.Spinbox(entry_bar, from_=10, to=1000, increment=10, width=3)
+    top_sb.pack(side=TOP, padx=20, pady=10)
+    bottom_sb = ttk.Spinbox(entry_bar, from_=10, to=1000, increment=10, width=3)
+    bottom_sb.pack(side=BOTTOM, padx=20, pady=10)
+    left_sb = ttk.Spinbox(entry_bar, from_=10, to=1000, increment=10, width=3)
+    left_sb.pack(side=LEFT, padx=20, pady=10)
+    right_sb = ttk.Spinbox(entry_bar, from_=10, to=1000, increment=10, width=3)
+    right_sb.pack(side=RIGHT, padx=20, pady=10)
+
+    btn = ttk.Button(master=top, text='裁剪', compound=CENTER, command=cut_out)
+    btn.pack(side=TOP, ipadx=12, pady=10)
+
+    top.mainloop()
+
+
 def choice_level():
-    """根据字母输出对应的字母图片"""
+    """根据输入的字母输出对应的图片"""
+
     def choice():
         initialize()
         data = text0.get(1.0, END)
         data = data.strip()
         img_path = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
-        entry_data = start_entry.get()
+        sb_data = start_sb.get()
         start = 0
-        if entry_data and entry_data.isdigit():
-            start = int(entry_data) - 1
+        if sb_data.isdigit():
+            start = int(sb_data) - 1
         if not (data and img_path):
             top.destroy()
             info_text.insert(END, '数据不完整\n')
@@ -144,15 +196,15 @@ def choice_level():
             return
         data_list = data.split('\n')
 
-        num = 0
+        counter = 0
         for s in data_list:
             if s not in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
                 info_text.insert(END, f'文件“{s}”不存在\n')
                 over()
                 return
-            num += 1
+            counter += 1
             if len(s) == 1:
-                shutil.copyfile(f'img/{s}.png', f'{img_path}/{num+start}.png')
+                shutil.copyfile(f'img/{s}.png', f'{img_path}/{counter + start}.png')
 
             # 处理多选题的答案
             elif len(s) > 1:
@@ -173,33 +225,37 @@ def choice_level():
                     w, h = img.size
                     result.paste(img, box=(width, round(height / 2 - h / 2)))
                     width += w
-                result.save(f'{img_path}/{num+start}.png')
-        info_text.insert(END, f'制作了{num}个答案\n')
+                result.save(f'{img_path}/{counter + start}.png')
+        info_text.insert(END, f'制作了{counter}个答案\n')
         top.destroy()
         over()
 
     top = ttk.Toplevel()
     top.title('制作答案')
-    top.geometry(f'500x300+{offset_x + 50}+{offset_y + 60}')  # 窗口大小
-    top.maxsize(600, 500)
-    top.minsize(350, 200)
+    top.geometry(f'500x350+{offset_x + 50}+{offset_y + 50}')  # 窗口大小
     top.iconbitmap('green_apple.ico')
-    text0 = ttk.Text(top, width=600, height=10)
+    top.resizable(False, False)
+    lb = ttk.Label(top, text='选择题答案：', font=('微软雅黑', 12))
+    lb.pack(pady=10)
+    text0 = ttk.Text(top, width=50, height=8)
     text0.pack()
-    start_entry = ttk.Entry(top)
-    start_entry.pack(side=TOP, pady=10)
+    text0.focus()
+    lb = ttk.Label(top, text='起始题号：', font=('微软雅黑', 12))
+    lb.pack(pady=10)
+    start_sb = ttk.Spinbox(top, from_=1, to=100, increment=1, width=3)
+    start_sb.pack()
     btn = ttk.Button(master=top, text='提交', compound=CENTER, command=choice)
-    btn.pack(side=TOP, ipadx=12, pady=10)
+    btn.pack(ipadx=12, pady=15)
 
     top.mainloop()
 
 
-def pinjie():
+def splice():
     """拼接两个文件夹里的名字相同的图片，拼接成功后删除第二个文件夹的图片"""
     img_path = filedialog.askdirectory(title='请选择题目文件夹', initialdir='F:/用户目录/桌面/')
     if not img_path:
         return
-    img_path2 = img_path+'答案'
+    img_path2 = img_path + '答案'
     if not os.path.exists(img_path2):
         img_path2 = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
         if not img_path2:
@@ -233,7 +289,7 @@ def pinjie():
     over()
 
 
-def pic_name():
+def copy_rename():
     """根据分隔符两边的数字确认图片的数量，复制图片并改名"""
     img_list = filedialog.askopenfilenames(title='请选择图片文件',
                                            filetypes=[('PNG', '.png'), ('JPG', '.jpg')],
@@ -261,7 +317,7 @@ def pic_name():
     over()
 
 
-def pic_num():
+def rename_id():
     """把文件夹里的图片名改成Excel里的编号，复制文件夹并改名"""
     file_name = filedialog.askopenfilename(title='请选择Excel文件',
                                            initialdir='F:/用户目录/桌面/',
@@ -323,7 +379,7 @@ def pic_num():
     over()
 
 
-def pic_point():
+def add_point():
     """根据小题数量复制图片并改名"""
     img_list = filedialog.askopenfilenames(title='请选择图片文件',
                                            filetypes=[('PNG', '.png'), ('JPG', '.jpg')],
@@ -347,7 +403,7 @@ def pic_point():
     over()
 
 
-def kemu_dir(event):
+def subject_dir(event):
     choice = messagebox.askquestion(title=' ', message='是否分科？')
     if choice == 'yes':
         kemu = ('语文', '数学文', '数学理', '英语', '政治', '历史', '地理', '物理', '化学', '生物')
@@ -375,7 +431,7 @@ def over():
 def show_message():
     top = ttk.Toplevel()
     top.title('软件介绍')
-    top.geometry(f'500x250+{offset_x+50}+{offset_y+60}')  # 窗口大小
+    top.geometry(f'500x250+{offset_x + 50}+{offset_y + 60}')  # 窗口大小
     top.maxsize(600, 350)
     top.minsize(350, 180)
 
@@ -395,19 +451,19 @@ def show_message():
 
 
 def about():
-    messagebox.showinfo(title='关于', message='橙图 1.0\n')
+    messagebox.showinfo(title='关于', message='橙图 1.1\n')
 
 
 root = ttk.Window(themename='cerculean', title='橙图')
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
-offset_x = int((screen_width-600)/2)
-offset_y = int((screen_height-450)/2)
+offset_x = int((screen_width - 600) / 2)
+offset_y = int((screen_height - 450) / 2)
 root.geometry(f'600x400+{offset_x}+{offset_y}')  # 窗口大小
 root.resizable(False, False)
 root.iconbitmap('green_apple.ico')
-root.bind('<Control-m>', kemu_dir)
-root.bind('<Control-M>', kemu_dir)
+root.bind('<Control-m>', subject_dir)
+root.bind('<Control-M>', subject_dir)
 
 menubar = ttk.Menu(root)
 help_menu = ttk.Menu(menubar, tearoff=0)
@@ -416,37 +472,40 @@ help_menu.add_command(label='关于', command=about)
 menubar.add_cascade(label='帮助', menu=help_menu)
 
 info_text = ttk.Text(root, width=60, height=5, border=-1)
-info_text.pack(pady=10)
+info_text.pack(pady=20)
 info_text.insert(END, '请选择功能\n')
 info_text.tag_add('forever', 1.0, END)
 info_text.tag_config('forever', foreground="green", font=('黑体', 12), spacing3=8, justify=CENTER)
 info_text.config(state=DISABLED)
 
+buttonbar1 = ttk.Frame(root)
+buttonbar1.pack(padx=0, pady=10)
+
+btn = ttk.Button(master=buttonbar1, text='Word转长图', compound=LEFT, command=word_to_images)
+btn.pack(side=LEFT, ipadx=2, padx=10)
+
+btn = ttk.Button(master=buttonbar1, text='PDF转长图', compound=LEFT, command=pdf_to_images)
+btn.pack(side=LEFT, ipadx=6, padx=10)
+
+btn = ttk.Button(master=buttonbar1, text='图片裁剪', compound=LEFT, command=cut_out_level)
+btn.pack(side=LEFT, ipadx=12, padx=10)
+
 buttonbar2 = ttk.Frame(root)
 buttonbar2.pack(padx=0, pady=10)
 
-btn = ttk.Button(master=buttonbar2, text='Word转长图', compound=LEFT, command=word_to_images)
+btn = ttk.Button(master=buttonbar2, text='制作答案', compound=LEFT, command=choice_level)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='PDF转长图', compound=LEFT, command=pdf_to_images)
+btn = ttk.Button(master=buttonbar2, text='拼接图片', compound=LEFT, command=splice)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
-buttonbar = ttk.Frame(root)
-buttonbar.pack(padx=0, pady=10)
-
-btn = ttk.Button(master=buttonbar, text='制作答案', compound=LEFT, command=choice_level)
+btn = ttk.Button(master=buttonbar2, text='拆文件名', compound=LEFT, command=copy_rename)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar, text='拼接图片', compound=LEFT, command=pinjie)
+btn = ttk.Button(master=buttonbar2, text='增加小题', compound=LEFT, command=add_point)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar, text='拆文件名', compound=LEFT, command=pic_name)
-btn.pack(side=LEFT, ipadx=12, padx=10)
-
-btn = ttk.Button(master=buttonbar, text='增加小题', compound=LEFT, command=pic_point)
-btn.pack(side=LEFT, ipadx=12, padx=10)
-
-btn = ttk.Button(master=buttonbar, text='添加编号', compound=LEFT, command=pic_num)
+btn = ttk.Button(master=buttonbar2, text='添加编号', compound=LEFT, command=rename_id)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
 root.config(menu=menubar)
