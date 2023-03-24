@@ -181,18 +181,20 @@ def choice_level():
 
     def choice():
         initialize()
-        data = text0.get(1.0, END)
-        data = data.strip()
+        data = text0.get(1.0, END).strip()
         img_path = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
+        if not (data and img_path):
+            top.destroy()
+            info_text.insert(END, '没有提供足够的数据\n')
+            over()
+            return
         sb_data = start_sb.get()
         start = 0
         if sb_data.isdigit():
             start = int(sb_data) - 1
-        if not (data and img_path):
-            top.destroy()
-            info_text.insert(END, '数据不完整\n')
-            over()
-            return
+        add = ''
+        if add_text.get():
+            add = add_text.get()
         data_list = data.split('\n')
 
         counter = 0
@@ -203,7 +205,7 @@ def choice_level():
                 return
             counter += 1
             if len(s) == 1:
-                shutil.copyfile(f'img/{s}.png', f'{img_path}/{counter + start}.png')
+                shutil.copyfile(f'img/{s}.png', f'{img_path}/{add}{counter + start}.png')
 
             # 处理多选题的答案
             elif len(s) > 1:
@@ -224,7 +226,7 @@ def choice_level():
                     w, h = img.size
                     result.paste(img, box=(width, round(height / 2 - h / 2)))
                     width += w
-                result.save(f'{img_path}/{counter + start}.png')
+                result.save(f'{img_path}/{add}{counter + start}.png')
         info_text.insert(END, f'制作了{counter}个答案\n')
         over()
         top.destroy()
@@ -239,12 +241,15 @@ def choice_level():
     text0 = ttk.Text(top, width=50, height=8)
     text0.pack()
     text0.focus()
-    lb = ttk.Label(top, text='起始题号：', font=('微软雅黑', 12))
-    lb.pack(pady=10)
-    start_sb = ttk.Spinbox(top, from_=1, to=100, increment=1, width=3)
-    start_sb.pack()
-    btn = ttk.Button(master=top, text='提交', compound=CENTER, command=choice)
-    btn.pack(ipadx=12, pady=15)
+    setbar = ttk.Frame(top)
+    setbar.pack(pady=10)
+    ttk.Label(setbar, text='起始题号：', font=('微软雅黑', 12)).pack(side=LEFT)
+    start_sb = ttk.Spinbox(setbar, from_=1, to=100, increment=1, width=3)
+    start_sb.pack(side=LEFT)
+    ttk.Label(setbar, text='文件名前添加：', font=('微软雅黑', 12), padding=(20, 0, 0, 0)).pack(side=LEFT)
+    add_text = ttk.Entry(setbar, width=3)
+    add_text.pack(side=LEFT)
+    ttk.Button(master=top, text='提交', compound=CENTER, command=choice).pack(ipadx=12, pady=15)
 
     top.mainloop()
 
