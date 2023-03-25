@@ -407,7 +407,7 @@ def split_score_level():
     right_text = ttk.Text(top, width=90, height=25, state=DISABLED)
     right_text.grid(row=1, column=2, padx=10)
 
-    btn = ttk.Button(master=top, text='计算', compound=LEFT, command=split_score)
+    btn = ttk.Button(master=top, text='计算', command=split_score)
     btn.grid(row=2, column=0, ipadx=10, pady=30, columnspan=3)
 
     top.mainloop()
@@ -513,31 +513,31 @@ info_text.config(state=DISABLED)
 buttonbar = ttk.Labelframe(root, text='选择功能', labelanchor="n")
 buttonbar.pack(pady=0,  padx=100, ipady=20)
 
-btn = ttk.Button(master=buttonbar, text='题目', compound=LEFT, command=heading)
+btn = ttk.Button(master=buttonbar, text='题目', command=heading)
 btn.pack(side=LEFT, padx=20)
 
-btn = ttk.Button(master=buttonbar, text='难度值', compound=LEFT, command=difficulty_level)
+btn = ttk.Button(master=buttonbar, text='难度值', command=difficulty_level)
 btn.pack(side=LEFT, padx=20)
 
-btn = ttk.Button(master=buttonbar, text='单选答案', compound=LEFT, command=single_choice)
+btn = ttk.Button(master=buttonbar, text='单选答案', command=single_choice)
 btn.pack(side=LEFT, padx=18)
 
-btn = ttk.Button(master=buttonbar, text='能力要求', compound=LEFT, command=skill_requirements)
+btn = ttk.Button(master=buttonbar, text='能力要求', command=skill_requirements)
 btn.pack(side=LEFT, padx=15)
 
-btn = ttk.Button(master=buttonbar, text='OMR', compound=LEFT, command=OMR)
+btn = ttk.Button(master=buttonbar, text='OMR', command=OMR)
 btn.pack(side=LEFT, padx=15)
 
-btn = ttk.Button(master=buttonbar, text='多选OMR', compound=LEFT, command=multiple_OMR)
+btn = ttk.Button(master=buttonbar, text='多选OMR', command=multiple_OMR)
 btn.pack(side=LEFT, padx=15)
 
-btn = ttk.Button(master=buttonbar, text='小分表', compound=LEFT, command=format_table)
+btn = ttk.Button(master=buttonbar, text='小分表', command=format_table)
 btn.pack(side=LEFT, padx=18)
 
-btn = ttk.Button(master=buttonbar, text='总分表', compound=LEFT, command=total_score_level)
+btn = ttk.Button(master=buttonbar, text='总分表', command=total_score_level)
 btn.pack(side=LEFT, padx=20)
 
-btn = ttk.Button(master=buttonbar, text='拆分', compound=LEFT, command=split_score_level)
+btn = ttk.Button(master=buttonbar, text='拆分', command=split_score_level)
 btn.pack(side=LEFT, padx=20)
 
 root.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，点击关闭时按钮，触发事件
