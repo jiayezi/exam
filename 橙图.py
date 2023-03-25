@@ -181,18 +181,20 @@ def choice_level():
 
     def choice():
         initialize()
-        data = text0.get(1.0, END)
-        data = data.strip()
+        data = text0.get(1.0, END).strip()
         img_path = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
+        if not (data and img_path):
+            top.destroy()
+            info_text.insert(END, '没有提供足够的数据\n')
+            over()
+            return
         sb_data = start_sb.get()
         start = 0
         if sb_data.isdigit():
             start = int(sb_data) - 1
-        if not (data and img_path):
-            top.destroy()
-            info_text.insert(END, '数据不完整\n')
-            over()
-            return
+        add = ''
+        if add_text.get():
+            add = add_text.get()
         data_list = data.split('\n')
 
         counter = 0
@@ -203,7 +205,7 @@ def choice_level():
                 return
             counter += 1
             if len(s) == 1:
-                shutil.copyfile(f'img/{s}.png', f'{img_path}/{counter + start}.png')
+                shutil.copyfile(f'img/{s}.png', f'{img_path}/{add}{counter + start}.png')
 
             # 处理多选题的答案
             elif len(s) > 1:
@@ -224,7 +226,7 @@ def choice_level():
                     w, h = img.size
                     result.paste(img, box=(width, round(height / 2 - h / 2)))
                     width += w
-                result.save(f'{img_path}/{counter + start}.png')
+                result.save(f'{img_path}/{add}{counter + start}.png')
         info_text.insert(END, f'制作了{counter}个答案\n')
         over()
         top.destroy()
@@ -239,12 +241,15 @@ def choice_level():
     text0 = ttk.Text(top, width=50, height=8)
     text0.pack()
     text0.focus()
-    lb = ttk.Label(top, text='起始题号：', font=('微软雅黑', 12))
-    lb.pack(pady=10)
-    start_sb = ttk.Spinbox(top, from_=1, to=100, increment=1, width=3)
-    start_sb.pack()
-    btn = ttk.Button(master=top, text='提交', compound=CENTER, command=choice)
-    btn.pack(ipadx=12, pady=15)
+    setbar = ttk.Frame(top)
+    setbar.pack(pady=10)
+    ttk.Label(setbar, text='起始题号：', font=('微软雅黑', 12)).pack(side=LEFT)
+    start_sb = ttk.Spinbox(setbar, from_=1, to=100, increment=1, width=3)
+    start_sb.pack(side=LEFT)
+    ttk.Label(setbar, text='文件名前添加：', font=('微软雅黑', 12), padding=(20, 0, 0, 0)).pack(side=LEFT)
+    add_text = ttk.Entry(setbar, width=3)
+    add_text.pack(side=LEFT)
+    ttk.Button(master=top, text='提交', compound=CENTER, command=choice).pack(ipadx=12, pady=15)
 
     top.mainloop()
 
@@ -317,63 +322,53 @@ def copy_rename():
 
 
 def rename_id():
-    # 待优化
     """把文件夹里的图片名改成Excel里的编号，复制文件夹并改名"""
-    file_name = filedialog.askopenfilename(title='请选择Excel文件',
-                                           initialdir='F:/用户目录/桌面/',
-                                           filetypes=[('Excel', '.xlsx')],
-                                           defaultextension='.xlsx')
+    wb_file = filedialog.askopenfilename(title='请选择Excel文件',
+                                         initialdir='F:/用户目录/桌面/',
+                                         filetypes=[('Excel', '.xlsx')],
+                                         defaultextension='.xlsx')
 
-    if not file_name:
+    img_dir = filedialog.askdirectory(title='请选择图片文件夹', initialdir='F:/用户目录/桌面/')
+    if not (wb_file and img_dir):
         return
+
     initialize()
-    subject = {'01': '语文', '02': '数学', '03': '数学文', '04': '数学理', '05': '英语', '06': '政治', '07': '历史',
-               '08': '地理', '09': '物理', '10': '化学', '11': '生物', '13': '科学', '14': '品德与社会',
-               '15': '道德与法治'}
-    wb = load_workbook(file_name)
+    subject_id = {'语文': '01', '数学': '02', '数学文': '03', '数学理': '04', '英语': '05', '政治': '06', '历史': '07',
+                  '地理': '08', '物理': '09', '化学': '10', '生物': '11', '科学': '13', '品德与社会': '14',
+                  '道德与法治': '15'}
+    wb = load_workbook(wb_file)
     ws = wb.worksheets[0]
+    subjects = []
+    for i, row in enumerate(ws.values):
+        if row[1] not in subjects:
+            subjects.append(row[1])
+    subjects.pop(0)  # 删除标题
 
-    while True:
-        num = simpledialog.askstring(' ', '请输入科目编号：')
-        if num in subject:
-            ToastNotification(title='信息', message=f'科目是 {subject[num]}', duration=3000, position=(0, 220, 's')) \
-                .show_toast()
-        else:
-            subject[num] = simpledialog.askstring(' ', '没有找到科目，请输入科目名称：')
-
-        img_dir = filedialog.askdirectory(title='请选择图片文件夹', initialdir='F:/用户目录/桌面/')
-        if not img_dir:
-            return
-
+    for subject in subjects:
+        subject_dir = img_dir+'/'+subject
         complete = True
         for row in ws.values:
-            if row[1] == subject[num]:
+            if row[1] == subject:
                 img_name = row[2]
-                abs_img_name = os.path.join(img_dir, f'{img_name}.png')
-                img_id = row[0]
-                abs_img_id = os.path.join(img_dir, f'{img_id}.png')
-                if os.path.exists(abs_img_name):
-                    shutil.copyfile(abs_img_name, abs_img_id)
+                img_path = subject_dir+f'/{img_name}.png'
+                img_id_name = row[0]
+                img_id_path = subject_dir+f'/{img_id_name}.png'
+                if os.path.exists(img_path):
+                    shutil.copyfile(img_path, img_id_path)
                 else:
                     info_text.insert(END, f'图片 {img_name}.png 不存在 (ー_ー)!!\n')
                     complete = False
 
-        info_text.insert(END, '图片文件名修改完成\n')
-
         # 复制图片到指定目录
         if complete:
-            p_dir = os.path.dirname(img_dir)
-            os.mkdir(f'{p_dir}/{num}')
-            os.rename(img_dir, f'{p_dir}/{num}/03')
-            shutil.copytree(f'{p_dir}/{num}/03', f'{p_dir}/{num}/13')
-            info_text.insert(END, '文件复制完成 (＾▽＾) \n')
-
-        over()
-        choice = messagebox.askyesno('改名确认', '是否继续改名？')
-        if choice:
-            initialize()
-        else:
-            break
+            imgs = os.listdir(subject_dir)
+            os.mkdir(subject_dir+'/03')
+            for img in imgs:
+                os.rename(subject_dir+'/'+img, subject_dir+'/03/'+img)
+            shutil.copytree(subject_dir+'/03', subject_dir+'/13')
+            os.rename(subject_dir, img_dir+'/'+subject_id[subject])
+            info_text.insert(END, f'{subject}处理完成\n')
+    info_text.insert(END, '全部完成\n')
     wb.close()
     over()
 

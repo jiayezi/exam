@@ -1,4 +1,4 @@
-﻿"""
+"""
 图像界面程序，辅助处理试题结构和小分表的信息
 版本：1.3
 """
@@ -400,11 +400,11 @@ def split_score_level():
     lb3 = ttk.Label(top, text='小分', font=('微软雅黑', 12))
     lb3.grid(row=0, column=2, pady=10)
 
-    left_text = ttk.Text(top, width=10, height=25)
+    left_text = ttk.Text(top, width=5, height=25)
     left_text.grid(row=1, column=0, padx=10)
-    mid_text = ttk.Text(top, width=10, height=25)
+    mid_text = ttk.Text(top, width=5, height=25)
     mid_text.grid(row=1, column=1, padx=10)
-    right_text = ttk.Text(top, width=80, height=25, state=DISABLED)
+    right_text = ttk.Text(top, width=90, height=25, state=DISABLED)
     right_text.grid(row=1, column=2, padx=10)
 
     btn = ttk.Button(master=top, text='计算', compound=LEFT, command=split_score)
