@@ -46,7 +46,10 @@ def submit_task():
     #     root.after(200, update_progress)
 
     def update_progress():
+        """定时更新进度条"""
+        # 等待futures列表不为空
         time.sleep(1)
+        # 查找并删除已完成的线程对象，增加进度条的值
         while futures:
             done = [f for f in futures if f.done()]
             for f in done:
