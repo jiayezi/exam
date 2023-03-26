@@ -1,4 +1,5 @@
 import os
+import time
 from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
 import ttkbootstrap as ttk
@@ -31,6 +32,32 @@ def submit_task():
         result.save(save_path, format='JPEG', optimize=True, quality=quality)
         os.rename(save_path, save_path + '.png')
 
+    # 使用递归调用有深度限制，不推荐
+    # def update_progress():
+    #     done = [f for f in futures if f.done()]
+    #     for f in done:
+    #         del futures[f]
+    #         progress['value'] += step
+    #     if len(futures) == 0:
+    #         progress['value'] = 100
+    #         messagebox.showinfo(message='全部处理完成')
+    #         submit_btn.config(state=ttk.NORMAL)
+    #         return
+    #     root.after(200, update_progress)
+
+    def update_progress():
+        time.sleep(1)
+        while futures:
+            done = [f for f in futures if f.done()]
+            for f in done:
+                del futures[f]
+                progress['value'] += step
+            time.sleep(0.2)
+
+        progress['value'] = 100
+        messagebox.showinfo(message='全部处理完成')
+        submit_btn.config(state=ttk.NORMAL)
+
     input_path = src_text.get()
     output_path = dst_text.get()
     del_text = del_entry.get()
@@ -38,7 +65,6 @@ def submit_task():
     if cbox.get().isdigit():
         max_number = int(cbox.get())
     quality = sc.get()
-    progress['value'] = 0
 
     if not (os.path.isdir(input_path) and os.path.isdir(output_path)):
         return
@@ -50,19 +76,21 @@ def submit_task():
         messagebox.showerror('错误', '该目录下没有足够的文件！')
         return
 
+    submit_btn.config(state=ttk.DISABLED)
+    progress['value'] = 0
     file_count = 0  # 记录合并后的图片数量
     splice_file_list = []
     for i in range(0, len(img_list), 2):
         splice_file_list.append((img_list[i], img_list[i + 1]))
         file_count += 1
 
-    step = 100.0/file_count
-    with ThreadPoolExecutor(max_workers=max_number) as pool:
-        for filesname in splice_file_list:
-            pool.submit(splice, filesname=filesname)  # 提交任务
-            progress['value'] += step
-    progress['value'] = 100
-    messagebox.showinfo(message='全部处理完成')
+    step = 100.0 / file_count
+    pool = ThreadPoolExecutor(max_workers=max_number)
+    pool.submit(update_progress)
+    futures = {}
+    for filesname in splice_file_list:
+        future = pool.submit(splice, filesname=filesname)  # 提交任务
+        futures[future] = filesname
 
 
 root = ttk.Window(themename='cerculean', title='答题卡拼接')
@@ -102,7 +130,8 @@ sc_value = ttk.StringVar()
 sc_value.set('33')
 ttk.Label(frame, textvariable=sc_value).grid(row=4, column=2, pady=5)
 
-ttk.Button(frame, text='提交', command=submit_task).grid(row=5, column=0, columnspan=3, ipadx=10, pady=20)
+submit_btn = ttk.Button(frame, text='提交', command=submit_task)
+submit_btn.grid(row=5, column=0, columnspan=3, ipadx=10, pady=20)
 
 progress = ttk.Progressbar(frame, length=380, value=0)
 progress.grid(row=6, column=0, columnspan=3, pady=10)
