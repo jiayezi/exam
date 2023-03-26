@@ -18,6 +18,7 @@ def get_dst_dir():
 
 def submit_task():
     def splice(filesname):
+        """上下拼接两张图片"""
         img1 = Image.open(input_path + '/' + filesname[0])
         img2 = Image.open(input_path + '/' + filesname[1])
         img1_height = img1.height
@@ -34,6 +35,7 @@ def submit_task():
 
     # 使用递归调用，迟早会把栈的空间用完，处理大量数据时不推荐
     # def update_progress():
+    #     """定时更新进度条"""
     #     done = [f for f in futures if f.done()]
     #     for f in done:
     #         del futures[f]
@@ -61,6 +63,7 @@ def submit_task():
         messagebox.showinfo(message='全部处理完成')
         submit_btn.config(state=ttk.NORMAL)
 
+    # 获取用户输入的数据，判断是否有效
     input_path = src_text.get()
     output_path = dst_text.get()
     del_text = del_entry.get()
@@ -81,13 +84,18 @@ def submit_task():
 
     submit_btn.config(state=ttk.DISABLED)
     progress['value'] = 0
-    file_count = 0  # 记录合并后的图片数量
+
+    # 每两张图片为一组
+    file_count = 0
     splice_file_list = []
     for i in range(0, len(img_list), 2):
         splice_file_list.append((img_list[i], img_list[i + 1]))
         file_count += 1
 
+    # 每完成一张图片，进度条需要增加的值
     step = 100.0 / file_count
+
+    # 创建进度条线程和图片拼接线程
     pool = ThreadPoolExecutor(max_workers=max_number)
     pool.submit(update_progress)
     futures = {}
@@ -97,6 +105,7 @@ def submit_task():
     pool.shutdown(wait=False)
 
 
+# 设置窗口
 root = ttk.Window(themename='cerculean', title='答题卡拼接')
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
@@ -106,6 +115,7 @@ root.geometry(f'450x350+{offset_x}+{offset_y}')  # 窗口大小
 root.resizable(False, False)
 root.iconbitmap('green_apple.ico')
 
+# 设置控件
 frame = ttk.Frame(root, padding=20)
 frame.grid(row=0, column=0)
 ttk.Label(frame, text='读取目录：', font=('黑体', 12)).grid(row=0, column=0, pady=5)
