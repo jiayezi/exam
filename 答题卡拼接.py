@@ -32,7 +32,7 @@ def submit_task():
         result.save(save_path, format='JPEG', optimize=True, quality=quality)
         os.rename(save_path, save_path + '.png')
 
-    # 使用递归调用有深度限制，不推荐
+    # 使用递归调用，迟早会把栈的空间用完，处理大量数据时不推荐
     # def update_progress():
     #     done = [f for f in futures if f.done()]
     #     for f in done:
@@ -91,6 +91,7 @@ def submit_task():
     for filesname in splice_file_list:
         future = pool.submit(splice, filesname=filesname)  # 提交任务
         futures[future] = filesname
+    pool.shutdown(wait=False)
 
 
 root = ttk.Window(themename='cerculean', title='答题卡拼接')
