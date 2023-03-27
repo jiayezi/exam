@@ -1,4 +1,4 @@
-"""计算每个学生每个科目的赋分成绩、等级和排名
+"""按新高考的等级赋分制，计算每个学生每个科目的赋分成绩、等级和排名。
 山东采用5等8级赋分制。
 等级考试科目原始成绩从高到低划分为A、B+、B、C+、C、D+、D、E共8个等级。
 参照正态分布原则，确定各等级人数所占比例分别为3%、7%、16%、24%、24%、16%、7%、3%。
@@ -26,12 +26,14 @@ student_data = ws_rows[1:]
 ws_title = ws_rows[0]
 subjects = ws_title[extra:23]
 
+# 配置领先率、赋分区间和等级
 rateT = (1, 0.97, 0.9, 0.74, 0.50, 0.26, 0.1, 0.07, 0)
 rateY = ((100, 91), (90, 81), (80, 71), (70, 61), (60, 51), (50, 41), (40, 31), (30, 21))
 dict_dj = {0: 'A', 1: 'B+', 2: 'B', 3: 'C+', 4: 'C', 5: 'D+', 6: 'D', 7: 'E'}
 
 
 def sort_rule(score):
+    """定义排序规则"""
     if score is None or score == '':
         return 0
     else:
@@ -58,12 +60,19 @@ for sub_index, subject in enumerate(subjects):
     temp_dj = 0
     rate = (student_num - 1) / student_num
     for row_index, row in enumerate(student_data):
-        if row[extra + sub_index] is None or row[extra + sub_index] == '' or \
-                student_data[row_index - 1][extra + sub_index] is None or \
-                student_data[row_index - 1][extra + sub_index] == '':
+        current_score_str = row[extra + sub_index]
+        if (current_score_str is None or current_score_str == '') and row_index != 0:
             continue
-        current_score = float(row[extra + sub_index])
-        previous_score = float(student_data[row_index - 1][extra + sub_index])
+        current_score = float(current_score_str)
+        # 原始分为0分不参与原始分对照表
+        if current_score < 0.001:
+            continue
+
+        previous_score_str = student_data[row_index - 1][extra + sub_index]
+        if row_index == 0:
+            previous_score_str = 0
+
+        previous_score = float(previous_score_str)
         if current_score != previous_score:
             rate = (student_num - row_index - 1) / student_num  # 领先率
             for v_index, value in enumerate(rateT):
