@@ -510,31 +510,31 @@ info_text.config(state=DISABLED)
 buttonbar1 = ttk.Frame(root)
 buttonbar1.pack(padx=0, pady=10)
 
-btn = ttk.Button(master=buttonbar1, text='Word转长图', compound=LEFT, command=word_to_images)
+btn = ttk.Button(master=buttonbar1, text='Word转长图', command=word_to_images)
 btn.pack(side=LEFT, ipadx=2, padx=10)
 
-btn = ttk.Button(master=buttonbar1, text='PDF转长图', compound=LEFT, command=pdf_to_images)
+btn = ttk.Button(master=buttonbar1, text='PDF转长图', command=pdf_to_images)
 btn.pack(side=LEFT, ipadx=6, padx=10)
 
-btn = ttk.Button(master=buttonbar1, text='图片裁剪', compound=LEFT, command=cut_out_level)
+btn = ttk.Button(master=buttonbar1, text='图片裁剪', command=cut_out_level)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
 buttonbar2 = ttk.Frame(root)
 buttonbar2.pack(padx=0, pady=10)
 
-btn = ttk.Button(master=buttonbar2, text='制作答案', compound=LEFT, command=choice_level)
+btn = ttk.Button(master=buttonbar2, text='制作答案', command=choice_level)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='拼接图片', compound=LEFT, command=splice)
+btn = ttk.Button(master=buttonbar2, text='拼接图片', command=splice)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='拆文件名', compound=LEFT, command=copy_rename)
+btn = ttk.Button(master=buttonbar2, text='拆文件名', command=copy_rename)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='增加小题', compound=LEFT, command=add_point)
+btn = ttk.Button(master=buttonbar2, text='增加小题', command=add_point)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='添加编号', compound=LEFT, command=rename_id)
+btn = ttk.Button(master=buttonbar2, text='添加编号', command=rename_id)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
 root.config(menu=menubar)
