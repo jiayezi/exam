@@ -70,7 +70,7 @@ def submit_task():
     max_number = 32
     if cbox.get().isdigit():
         max_number = int(cbox.get())
-    quality = sc.get()
+    quality = round(sc.get())  # 如果sc.get()的值是小数，PIl可能无法保存图片
 
     if not (os.path.isdir(input_path) and os.path.isdir(output_path)):
         return

@@ -198,20 +198,17 @@ def choice_level():
         data_list = data.split('\n')
 
         counter = 0
-        for s in data_list:
-            if s not in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
-                info_text.insert(END, f'文件“{s}”不存在\n')
-                over()
-                return
+        for row in data_list:
             counter += 1
-            if len(s) == 1:
-                shutil.copyfile(f'img/{s}.png', f'{img_path}/{add}{counter + start}.png')
+            if len(row) == 1 and row in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
+                shutil.copyfile(f'img/{row}.png', f'{img_path}/{add}{counter + start}.png')
 
             # 处理多选题的答案
-            elif len(s) > 1:
+            elif len(row) > 1:
                 img_list = []
-                for i in s:
-                    img_list.append(Image.open(f'img/{i}.png'))
+                for item in row:
+                    if item in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
+                        img_list.append(Image.open(f'img/{item}.png'))
 
                 width = 0
                 height = 0
@@ -321,6 +318,30 @@ def copy_rename():
     over()
 
 
+def add_point():
+    """根据小题数量复制图片并改名"""
+    img_list = filedialog.askopenfilenames(title='请选择图片文件',
+                                           filetypes=[('PNG', '.png'), ('JPG', '.jpg')],
+                                           defaultextension='.png')
+    if not img_list:
+        return
+    initialize()
+    point_str = simpledialog.askstring('输入', '请输入小题数量：')
+    if point_str is None or not point_str.isdigit():
+        info_text.insert(END, '必须输入纯数字\n')
+        over()
+        return
+    point_num = int(point_str)
+    file_path = os.path.dirname(img_list[0])
+    for img in img_list:
+        name, extension = os.path.basename(img).split('.')  # 文件名，扩展名
+        for i in range(1, point_num):
+            shutil.copyfile(img, f'{file_path}/{name}-{i}.{extension}')
+        os.rename(img, f'{file_path}/{name}-{point_num}.{extension}')
+    info_text.insert(END, '完成\n')
+    over()
+
+
 def rename_id():
     """把文件夹里的图片名改成Excel里的编号，复制文件夹并改名"""
     wb_file = filedialog.askopenfilename(title='请选择Excel文件',
@@ -345,55 +366,33 @@ def rename_id():
     subjects.pop(0)  # 删除标题
 
     for subject in subjects:
-        subject_dir = img_dir+'/'+subject
+        subject_dir = img_dir + '/' + subject
         complete = True
         for row in ws.values:
             if row[1] == subject:
                 img_name = row[2]
-                img_path = subject_dir+f'/{img_name}.png'
+                img_path = subject_dir + f'/{img_name}.png'
                 img_id_name = row[0]
-                img_id_path = subject_dir+f'/{img_id_name}.png'
+                img_id_path = subject_dir + f'/{img_id_name}.png'
                 if os.path.exists(img_path):
                     shutil.copyfile(img_path, img_id_path)
                 else:
                     info_text.insert(END, f'图片 {img_name}.png 不存在 (ー_ー)!!\n')
-                    complete = False
+                    go_on = messagebox.askyesno(message='是否继续？')
+                    if not go_on:
+                        complete = False
 
         # 复制图片到指定目录
         if complete:
             imgs = os.listdir(subject_dir)
-            os.mkdir(subject_dir+'/03')
+            os.mkdir(subject_dir + '/03')
             for img in imgs:
-                os.rename(subject_dir+'/'+img, subject_dir+'/03/'+img)
-            shutil.copytree(subject_dir+'/03', subject_dir+'/13')
-            os.rename(subject_dir, img_dir+'/'+subject_id[subject])
+                os.rename(subject_dir + '/' + img, subject_dir + '/03/' + img)
+            shutil.copytree(subject_dir + '/03', subject_dir + '/13')
+            os.rename(subject_dir, img_dir + '/' + subject_id[subject])
             info_text.insert(END, f'{subject}处理完成\n')
     info_text.insert(END, '全部完成\n')
     wb.close()
-    over()
-
-
-def add_point():
-    """根据小题数量复制图片并改名"""
-    img_list = filedialog.askopenfilenames(title='请选择图片文件',
-                                           filetypes=[('PNG', '.png'), ('JPG', '.jpg')],
-                                           defaultextension='.png')
-    if not img_list:
-        return
-    initialize()
-    point_str = simpledialog.askstring('输入', '请输入小题数量：')
-    if point_str is None or not point_str.isdigit():
-        info_text.insert(END, '必须输入纯数字\n')
-        over()
-        return
-    point_num = int(point_str)
-    file_path = os.path.dirname(img_list[0])
-    for img in img_list:
-        name, extension = os.path.basename(img).split('.')  # 文件名，扩展名
-        for i in range(1, point_num):
-            shutil.copyfile(img, f'{file_path}/{name}-{i}.{extension}')
-        os.rename(img, f'{file_path}/{name}-{point_num}.{extension}')
-    info_text.insert(END, '完成\n')
     over()
 
 
