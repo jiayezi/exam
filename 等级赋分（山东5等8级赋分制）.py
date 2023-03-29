@@ -9,7 +9,7 @@
 from tkinter import filedialog
 from openpyxl import load_workbook, Workbook
 
-extra = 14  # 前14列数据用不上
+extra = 8  # 前14列数据用不上
 
 # 读取Excel文件
 file_path = filedialog.askopenfilename(title='请选择Excel文件', initialdir='F:/用户目录/桌面/',
@@ -27,7 +27,7 @@ ws_title = ws_rows[0]
 subjects = ws_title[extra:23]
 
 # 配置领先率、赋分区间和等级
-rateT = (1, 0.97, 0.9, 0.74, 0.50, 0.26, 0.1, 0.07, 0)
+rateT = (1, 0.97, 0.9, 0.74, 0.50, 0.26, 0.1, 0.03, 0)
 rateY = ((100, 91), (90, 81), (80, 71), (70, 61), (60, 51), (50, 41), (40, 31), (30, 21))
 dict_dj = {0: 'A', 1: 'B+', 2: 'B', 3: 'C+', 4: 'C', 5: 'D+', 6: 'D', 7: 'E'}
 
