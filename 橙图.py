@@ -152,9 +152,9 @@ def cut_out_level():
 
     top = ttk.Toplevel()
     top.title('裁剪图片')
-    top.geometry(f'400x300+{offset_x + 100}+{offset_y + 60}')  # 窗口大小
+    top.geometry(f'400x300')  # 窗口大小
     top.iconbitmap('green_apple.ico')
-    top.resizable(False, False)
+    top.place_window_center()
 
     lb = ttk.Label(top, text='请输入四边需要裁剪的像素：', font=('微软雅黑', 12))
     lb.pack(pady=10)
@@ -230,9 +230,10 @@ def choice_level():
 
     top = ttk.Toplevel()
     top.title('制作答案')
-    top.geometry(f'500x350+{offset_x + 50}+{offset_y + 50}')  # 窗口大小
+    top.geometry(f'500x350')  # 窗口大小
     top.iconbitmap('green_apple.ico')
-    top.resizable(False, False)
+    top.place_window_center()
+
     lb = ttk.Label(top, text='选择题答案：', font=('微软雅黑', 12))
     lb.pack(pady=10)
     text0 = ttk.Text(top, width=50, height=8)
@@ -415,9 +416,10 @@ def subject_dir(event):
 
     top = ttk.Toplevel()
     top.title('创建科目目录')
-    top.geometry(f'500x200+{offset_x + 50}+{offset_y + 50}')  # 窗口大小
+    top.geometry(f'500x200')  # 窗口大小
     top.iconbitmap('green_apple.ico')
-    top.resizable(False, False)
+    top.place_window_center()
+
     lb = ttk.Label(top, text='选择科目：', font=('微软雅黑', 12))
     lb.pack(pady=10)
 
@@ -459,9 +461,10 @@ def over():
 def show_message():
     top = ttk.Toplevel()
     top.title('软件介绍')
-    top.geometry(f'500x250+{offset_x + 50}+{offset_y + 60}')  # 窗口大小
+    top.geometry(f'500x250')  # 窗口大小
     top.maxsize(600, 350)
     top.minsize(350, 180)
+    top.place_window_center()
 
     text0 = ttk.Text(top, width=800, height=20, spacing1=10, spacing2=10)
     text0.pack()
@@ -483,11 +486,7 @@ def about():
 
 
 root = ttk.Window(themename='cerculean', title='橙图')
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-offset_x = int((screen_width - 600) / 2)
-offset_y = int((screen_height - 450) / 2)
-root.geometry(f'600x400+{offset_x}+{offset_y}')  # 窗口大小
+root.geometry(f'600x400')  # 窗口大小
 root.resizable(False, False)
 root.iconbitmap('green_apple.ico')
 root.bind('<Control-m>', subject_dir)
@@ -537,4 +536,5 @@ btn = ttk.Button(master=buttonbar2, text='添加编号', command=rename_id)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
 root.config(menu=menubar)
+root.place_window_center()
 root.mainloop()

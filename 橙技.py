@@ -336,9 +336,9 @@ def total_score_level():
 
     top = ttk.Toplevel()
     top.title('计算总分')
-    top.geometry(f'800x600+{offset_x + 150}+{offset_y + 60}')  # 窗口大小
+    top.geometry(f'800x600')  # 窗口大小
     top.iconbitmap('green_apple.ico')
-    top.resizable(False, False)
+    top.place_window_center()
 
     lb = ttk.Label(top, text='考号和单科成绩：', font=('微软雅黑', 12))
     lb.pack(pady=10)
@@ -389,9 +389,11 @@ def split_score_level():
 
     top = ttk.Toplevel()
     top.title('拆分')
-    top.geometry(f'800x600+{offset_x + 150}+{offset_y + 60}')  # 窗口大小
+    top.geometry(f'800x600')  # 窗口大小
     top.iconbitmap('green_apple.ico')
-    top.resizable(False, False)
+    top.place_window_center()
+
+    top.place_window_center()
 
     lb1 = ttk.Label(top, text='总分', font=('微软雅黑', 12))
     lb1.grid(row=0, column=0, pady=10)
@@ -425,9 +427,10 @@ def over():
 def show_message():
     top = ttk.Toplevel()
     top.title('软件介绍')
-    top.geometry(f'600x320+{offset_x+240}+{offset_y+180}')  # 窗口大小
+    top.geometry(f'600x320')  # 窗口大小
     top.maxsize(700, 400)
     top.minsize(500, 200)
+    top.place_window_center()
 
     text0 = ttk.Text(top, width=100, height=20, spacing2=10, spacing3=15)
     text0.pack()
@@ -471,11 +474,7 @@ def close_handle():
 
 # 窗口
 root = ttk.Window(themename='cerculean', title='橙技')
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-offset_x = int((screen_width-1080)/2)
-offset_y = int((screen_height-800)/2)
-root.geometry(f'1080x800+{offset_x}+{offset_y}')  # 窗口大小
+root.geometry(f'1080x800')  # 窗口大小
 root.minsize(1000, 750)
 root.iconbitmap('green_apple.ico')
 
@@ -485,6 +484,10 @@ sub_menu = ttk.Menu(main_menu, tearoff=0)
 sub_menu.add_command(label='介绍', command=show_message)
 sub_menu.add_command(label='关于', command=about)
 main_menu.add_cascade(label='帮助', menu=sub_menu)
+root.config(menu=main_menu)
+
+root.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，点击关闭时按钮，触发事件
+root.place_window_center()
 
 label1 = ttk.Label(root, text='原始数据', font=('黑体', 12))
 label1.pack(pady=10)  # 按布局方式放置标签
@@ -540,7 +543,4 @@ btn.pack(side=LEFT, padx=20)
 btn = ttk.Button(master=buttonbar, text='拆分', command=split_score_level)
 btn.pack(side=LEFT, padx=20)
 
-root.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，点击关闭时按钮，触发事件
-
-root.config(menu=main_menu)
 root.mainloop()

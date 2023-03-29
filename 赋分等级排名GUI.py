@@ -66,13 +66,13 @@ class App(ttk.Frame):
         """创建界面元素"""
         self.grid(row=0, column=0)
 
-        self.item_frame = ttk.Frame(master=self, padding=(10, 0, 10, 0))
-        self.item_frame.grid(row=0, column=0, pady=10, sticky='n')
         self.cbox_frame = ttk.Frame(master=self, padding=(10, 0, 10, 0))
-        self.cbox_frame.grid(row=0, column=1, pady=10, sticky='n')
+        self.cbox_frame.grid(row=0, column=0, pady=10, sticky='n')
+        self.item_frame = ttk.Frame(master=self, padding=(10, 0, 10, 0))
+        self.item_frame.grid(row=0, column=1, pady=10, sticky='n')
+        self.item_frame.grid_columnconfigure(0, minsize=65)
         self.btn_frame = ttk.Frame(master=self, padding=(10, 0, 10, 0))
         self.btn_frame.grid(row=0, column=2, pady=10, sticky='n')
-
         ttk.Label(master=self.item_frame, text='数据项', font=('黑体', 12)).grid(row=0, column=0, pady=10)
         self.select_all_var = ttk.StringVar()
         cb = ttk.Checkbutton(master=self.item_frame, text='全选', variable=self.select_all_var,
@@ -165,9 +165,6 @@ class App(ttk.Frame):
 
     def extract_data(self):
         """提取数据"""
-        self.open_btn.config(state=DISABLED)
-        self.submit_btn.config(state=DISABLED)
-
         # 获取选中的科目的下标和名字
         self.selected_subject_index = []
         self.selected_subject_name = []
@@ -178,11 +175,23 @@ class App(ttk.Frame):
                 self.selected_subject_index.append(int(index))
                 self.selected_subject_name.append(data)
 
-        # 获取区、校、班、考号的下标
-        area_index = self.title.index(self.area_cbox.get())
-        school_index = self.title.index(self.school_cbox.get())
-        class_index = self.title.index(self.class_cbox.get())
-        id_index = self.title.index(self.id_cbox.get())
+        # 获取下拉列表的值
+        area = self.area_cbox.get()
+        school = self.school_cbox.get()
+        class_ = self.class_cbox.get()
+        id = self.id_cbox.get()
+        if not (area and school and class_ and id and self.selected_subject_name):
+            messagebox.showwarning(message='请选择对应字段并勾选数据项！')
+            return
+
+        self.open_btn.config(state=DISABLED)
+        self.submit_btn.config(state=DISABLED)
+
+        # 获取下拉列表的值的下标
+        area_index = self.title.index(area)
+        school_index = self.title.index(school)
+        class_index = self.title.index(class_)
+        id_index = self.title.index(id)
 
         print('区、校、班、考号：', area_index, school_index, class_index, id_index)
         print('选择科目：', self.selected_subject_index)
@@ -329,12 +338,9 @@ class App(ttk.Frame):
 
 if __name__ == "__main__":
     app = ttk.Window(title="成绩计算程序")
-    screen_width = app.winfo_screenwidth()
-    screen_height = app.winfo_screenheight()
-    offset_x = int((screen_width - 650) / 2)
-    offset_y = int((screen_height - 380) / 2)
-    # app.geometry(f'650x380+{offset_x}+{offset_y}')  # 窗口大小
+    # app.geometry(f'650x380')  # 窗口大小
     app.minsize(220, 330)
     app.iconbitmap('green_apple.ico')
     App(app)
+    app.place_window_center()
     app.mainloop()
