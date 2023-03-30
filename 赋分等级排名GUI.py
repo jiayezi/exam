@@ -126,10 +126,27 @@ class App(ttk.Frame):
                     index = self.title.index(data)
                     self.selected_subject_index.append(int(index))
 
-            # 配置领先率、赋分区间和等级
-            rateT = (1, 0.97, 0.9, 0.74, 0.50, 0.26, 0.1, 0.03, 0)
-            rateY = ((100, 91), (90, 81), (80, 71), (70, 61), (60, 51), (50, 41), (40, 31), (30, 21))
-            dict_dj = {0: 'A', 1: 'B+', 2: 'B', 3: 'C+', 4: 'C', 5: 'D+', 6: 'D', 7: 'E'}
+            # 加载配置文件，读取领先率、赋分区间和等级
+            rateT = []
+            rateY = []
+            dict_dj = {}
+            with open('convert.conf', 'rt') as f:
+                data = f.read()
+            row_list = data.split('\n')
+            rate_sum = 0
+            for index, row in enumerate(row_list):
+                value_list = row.split('\t')
+                dict_dj[index] = value_list[0]
+                rg = (int(value_list[1]), int(value_list[2]))
+                rateY.append(rg)
+                rate_sum += int(value_list[3])
+                value = (100-rate_sum)/100.0
+                rateT.append(value)
+
+            # 手动配置领先率、赋分区间和等级
+            # rateT = (0.97, 0.9, 0.74, 0.50, 0.26, 0.1, 0.03, 0)
+            # rateY = ((100, 91), (90, 81), (80, 71), (70, 61), (60, 51), (50, 41), (40, 31), (30, 21))
+            # dict_dj = {0: 'A', 1: 'B+', 2: 'B', 3: 'C+', 4: 'C', 5: 'D+', 6: 'D', 7: 'E'}
 
             for sub_index, subject in enumerate(self.selected_subject_name):
                 score_index = self.selected_subject_index[sub_index]
@@ -149,9 +166,9 @@ class App(ttk.Frame):
 
                 # 获取原始分等级区间
                 rateS = [[float(self.student_objs[0].row[score_index])]]
-                temp_dj = 0
                 rate = (student_num - 1) / student_num
                 previous_score = -1  # 上个分数，初始值为-1
+                temp_dj = 0  # 初始等级和索引
                 for row_index, student in enumerate(self.student_objs):
                     current_score_str = student.row[score_index]
                     if current_score_str is None or current_score_str == '' or float(current_score_str) < 0.001:
@@ -161,19 +178,17 @@ class App(ttk.Frame):
                     if current_score != previous_score:
                         previous_score = current_score
                         rate = (student_num - row_index - 1) / student_num  # 领先率
-                        for v_index, value in enumerate(rateT):
-                            if v_index == 0:
-                                continue
+                        for t_index, value in enumerate(rateT):
                             if rate >= value:
-                                if temp_dj != v_index - 1:
-                                    temp_dj = v_index - 1
+                                if temp_dj != t_index:
+                                    temp_dj = t_index
                                     rateS[temp_dj - 1].append(
                                         float(self.student_objs[row_index - 1].row[score_index]))
                                     rateS.append([float(student.row[score_index])])
                                 break
                 # rateS[-1].append(float(student_data[-1][extra + i]))
                 rateS[-1].append(min_score)
-                # print(f'{subject}原始分等级区间：{rateS}')
+                print(f'{subject}原始分等级区间：{rateS}')
 
                 # 计算赋分成绩
                 for student in self.student_objs:
@@ -185,8 +200,6 @@ class App(ttk.Frame):
                     score = float(score_str)
                     xsdj = 0
                     for index, dj_score in enumerate(rateS):
-                        if index == 0:
-                            continue
                         if dj_score[0] >= score >= dj_score[1]:
                             xsdj = index
                             break
@@ -374,8 +387,6 @@ def close_handle():
 
 if __name__ == "__main__":
     app = ttk.Window(title="成绩计算程序")
-    # app.geometry(f'650x380')  # 窗口大小
-    # app.minsize(333, 333)
     app.iconbitmap('green_apple.ico')
     App(app)
     app.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，点击关闭时按钮，触发事件
