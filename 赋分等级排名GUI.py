@@ -31,15 +31,8 @@ class App(ttk.Frame):
 
     def __init__(self, index_frame):
         super().__init__(index_frame, padding=10)
-        self.checkbutton_var = []
-        self.checkbutton_name = []
-        self.selected_subject_name = []
-        self.selected_subject_index = []
         self.title = []
         self.student_objs = []
-        self.wb = None
-        self.ws = None
-
         self.createUI()
 
     def createUI(self):
@@ -49,23 +42,34 @@ class App(ttk.Frame):
         self.btn_frame = ttk.Frame(master=self, padding=(20, 0, 20, 0))
         self.btn_frame.grid(row=0, column=0, padx=80, pady=10, sticky='n')
 
-        ttk.Label(master=self.btn_frame, text='功能', font=('黑体', 12)).grid(row=0, column=0, padx=5, pady=10)
-        self.open_btn = ttk.Button(master=self.btn_frame, text='选择文档', command=self.open_file)
+        ttk.Label(master=self.btn_frame, text='选择功能', font=('黑体', 12)).grid(row=0, column=0, pady=10)
+        self.open_btn = ttk.Button(master=self.btn_frame, text='打开文档', command=lambda: MyThread(self.open_file))
         self.open_btn.grid(row=1, column=0, pady=10)
-        self.submit_btn = ttk.Button(master=self.btn_frame, text='提交数据',
-                                     command=lambda: MyThread(self.extract_data), state=DISABLED)
-        self.submit_btn.grid(row=2, column=0, pady=10)
         self.convert_btn = ttk.Button(master=self.btn_frame, text='成绩赋分',
                                       command=lambda: MyThread(self.create_convert_page),
                                       state=DISABLED)
-        self.convert_btn.grid(row=3, column=0, pady=10)
+        self.convert_btn.grid(row=2, column=0, pady=10)
         self.rank_btn = ttk.Button(master=self.btn_frame, text='计算排名',
                                    command=lambda: MyThread(self.create_rank_page),
                                    state=DISABLED)
-        self.rank_btn.grid(row=4, column=0, pady=10)
+        self.rank_btn.grid(row=3, column=0, pady=10)
         self.save_btn = ttk.Button(master=self.btn_frame, text='保存文件', command=lambda: MyThread(self.save_file),
                                    state=DISABLED)
-        self.save_btn.grid(row=5, column=0, pady=10)
+        self.save_btn.grid(row=4, column=0, pady=10)
+        self.info_text = ttk.StringVar()
+        ttk.Label(master=self, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=1, column=0, pady=10)
+
+    def btn_freeze(self):
+        self.open_btn.config(state=DISABLED)
+        self.convert_btn.config(state=DISABLED)
+        self.rank_btn.config(state=DISABLED)
+        self.save_btn.config(state=DISABLED)
+
+    def btn_unfreeze(self):
+        self.open_btn.config(state=NORMAL)
+        self.convert_btn.config(state=NORMAL)
+        self.rank_btn.config(state=NORMAL)
+        self.save_btn.config(state=NORMAL)
 
     def open_file(self):
         """打开Excel，创建复选框"""
@@ -74,32 +78,24 @@ class App(ttk.Frame):
         if not path:
             return
 
-        self.wb = load_workbook(path, read_only=True)
-        self.ws = self.wb.active
-        self.submit_btn.config(state=NORMAL)
-
-    def extract_data(self):
-        """提取数据"""
         self.open_btn.config(state=DISABLED)
-        self.submit_btn.config(state=DISABLED)
+        self.info_text.set('正在读取数据')
 
-        self.title = list(next(self.ws.values))
+        wb = load_workbook(path, read_only=True)
+        ws = wb.active
+        self.title = list(next(ws.values))
 
         # 存为对象
         self.student_objs = []
-        for i, row in enumerate(self.ws.values):
+        for i, row in enumerate(ws.values):
             if i == 0:
                 continue
             stu_obj = Student(list(row))
             self.student_objs.append(stu_obj)
-        self.wb.close()
+        wb.close()
 
-        messagebox.showinfo(message='提交成功')
-        self.open_btn.config(state=NORMAL)
-        self.submit_btn.config(state=NORMAL)
-        self.convert_btn.config(state=NORMAL)
-        self.rank_btn.config(state=NORMAL)
-        self.save_btn.config(state=NORMAL)
+        self.info_text.set('读取完成')
+        self.btn_unfreeze()
 
     def create_convert_page(self):
         def back():
@@ -108,39 +104,35 @@ class App(ttk.Frame):
 
         def convert_score():
             """成绩赋分"""
-
-            def sort_rule(score):
-                """定义排序规则"""
-                if score is None or score == '':
-                    return 0
-                else:
-                    return float(score)
+            convert_btn.config(state=DISABLED)
+            self.btn_freeze()
+            self.info_text.set('正在计算转换分')
 
             # 获取选中的科目的下标和名字
-            self.selected_subject_index = []
-            self.selected_subject_name = []
-            for value in self.checkbutton_var:
+            selected_subject_index = []
+            selected_subject_name = []
+            for value in checkbutton_var:
                 data = value.get()
                 if data:
-                    self.selected_subject_name.append(data)
+                    selected_subject_name.append(data)
                     index = self.title.index(data)
-                    self.selected_subject_index.append(int(index))
+                    selected_subject_index.append(int(index))
 
             # 加载配置文件，读取领先率、赋分区间和等级
             rateT = []
             rateY = []
             dict_dj = {}
-            with open('convert.conf', 'rt') as f:
+            with open('convert.conf', 'rt', encoding='utf8') as f:
                 data = f.read()
             row_list = data.split('\n')
             rate_sum = 0
-            for index, row in enumerate(row_list):
+            for index, row in enumerate(row_list[1:]):
                 value_list = row.split('\t')
                 dict_dj[index] = value_list[0]
                 rg = (int(value_list[1]), int(value_list[2]))
                 rateY.append(rg)
                 rate_sum += int(value_list[3])
-                value = (100-rate_sum)/100.0
+                value = (100 - rate_sum) / 100.0
                 rateT.append(value)
 
             # 手动配置领先率、赋分区间和等级
@@ -148,8 +140,8 @@ class App(ttk.Frame):
             # rateY = ((100, 91), (90, 81), (80, 71), (70, 61), (60, 51), (50, 41), (40, 31), (30, 21))
             # dict_dj = {0: 'A', 1: 'B+', 2: 'B', 3: 'C+', 4: 'C', 5: 'D+', 6: 'D', 7: 'E'}
 
-            for sub_index, subject in enumerate(self.selected_subject_name):
-                score_index = self.selected_subject_index[sub_index]
+            for sub_index, subject in enumerate(selected_subject_name):
+                score_index = selected_subject_index[sub_index]
                 self.student_objs.sort(key=lambda x: sort_rule(x.row[score_index]), reverse=True)
 
                 # 获取得分大于0分的人数、获取大于0分的最小原始分
@@ -212,7 +204,10 @@ class App(ttk.Frame):
                     student.row.append(dict_dj[xsdj])
                 self.title.append(f'{subject}转换分')
                 self.title.append(f'{subject}等级')
-            messagebox.showinfo(message='赋分完成')
+
+            self.info_text.set('转换分计算完成')
+            convert_btn.config(state=NORMAL)
+            self.btn_unfreeze()
 
         convert_page = ttk.Frame(master=app, padding=20)
         item_frame = ttk.Frame(master=convert_page, padding=(20, 0, 20, 0))
@@ -221,21 +216,28 @@ class App(ttk.Frame):
         btn_frame.grid(row=0, column=1)
         ttk.Label(master=item_frame, text='赋分科目', font=('黑体', 12)).grid(row=0, column=0, pady=10)
 
+        select_all_var = ttk.StringVar()
+        cb = ttk.Checkbutton(master=item_frame, text='全选', variable=select_all_var,
+                             onvalue='全选', offvalue='', command=lambda: select_all1(select_all_var, checkbutton_var, checkbutton_name))
+        cb.grid(row=1, column=0, pady=5, sticky='w')
+
         possible_subjects = (
             '语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学', '生物', '总分')
-        self.checkbutton_var = []
-        self.checkbutton_name = []
+        checkbutton_var = []
+        checkbutton_name = []
         for i, item in enumerate(self.title):
             if item in possible_subjects:
-                self.checkbutton_var.append(ttk.StringVar())
+                checkbutton_var.append(ttk.StringVar())
                 cb = ttk.Checkbutton(master=item_frame, text=f'{i + 1:0>2d} {item}',
-                                     variable=self.checkbutton_var[-1],
+                                     variable=checkbutton_var[-1],
                                      onvalue=item, offvalue='')
-                cb.grid(row=i + 1, column=0, pady=3, sticky='w')
-                self.checkbutton_name.append(item)
+                cb.grid(row=i + 2, column=0, pady=3, sticky='w')
+                checkbutton_name.append(item)
 
-        ttk.Button(master=btn_frame, text='计算转换分', command=convert_score).grid(row=0, column=0, pady=10)
+        convert_btn = ttk.Button(master=btn_frame, text='计算转换分', command=convert_score)
+        convert_btn.grid(row=0, column=0, pady=10)
         ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=1, column=0, pady=10)
+        ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=2, column=0, pady=20)
 
         self.grid_forget()
         convert_page.grid()
@@ -255,48 +257,53 @@ class App(ttk.Frame):
                 else:
                     return float(score)
 
+            rank_btn.config(state=DISABLED)
+            self.btn_freeze()
+            self.info_text.set('正在计算排名')
+
             # 获取选中的科目的下标和名字
-            self.selected_subject_index = []
-            self.selected_subject_name = []
-            for value in self.checkbutton_var:
+            selected_subject_index = []
+            selected_subject_name = []
+            for value in checkbutton_var:
                 data = value.get()
                 if data:
-                    self.selected_subject_name.append(data)
+                    selected_subject_name.append(data)
                     index = self.title.index(data)
-                    self.selected_subject_index.append(int(index))
+                    selected_subject_index.append(int(index))
 
             # 获取选中的排序分组的下标和名字
-            self.rank_group_index = []
-            self.rank_group_name = []
-            for value in self.checkbutton_rank_group_var:
+            rank_group_index = []
+            rank_group_name = []
+            for value in checkbutton_rank_group_var:
                 data = value.get()
                 if data:
-                    self.rank_group_name.append(data)
+                    rank_group_name.append(data)
                     index = self.title.index(data)
-                    self.rank_group_index.append(int(index))
+                    rank_group_index.append(int(index))
 
             # 排序的组名
             group_title = ''
-            for item in self.rank_group_name:
+            for item in rank_group_name:
                 group_title += item
 
             # 给学生设置分组
             group_set = set()
             for index, student in enumerate(self.student_objs):
                 group_name = ''
-                for g_index in self.rank_group_index:
+                for g_index in rank_group_index:
                     group_name += student.row[g_index]
                 group_set.add(group_name)
                 student.group = group_name
 
-            # print(f'排序分组:{self.rank_group_name}')
-            # print(f'排序科目:{self.selected_subject_name}')
+            print(f'排序分组:{rank_group_name}')
+            print(f'排序科目:{selected_subject_name}')
+            print('组名', group_title)
 
-            for sub_index, subject in enumerate(self.selected_subject_name):
+            for sub_index, subject in enumerate(selected_subject_name):
                 group_list = list(group_set)
                 for group in group_list:
                     student_objs_new = list(filter(lambda x: x.group == group, self.student_objs))
-                    score_index = self.selected_subject_index[sub_index]
+                    score_index = selected_subject_index[sub_index]
                     student_objs_new.sort(key=lambda x: sort_rule(x.row[score_index]), reverse=True)
 
                     prev = -1  # 上个分数，初始值为-1
@@ -314,47 +321,63 @@ class App(ttk.Frame):
                         student.row.append(rank)
                 self.title.append(f'{subject}{group_title}排名')
 
-            messagebox.showinfo(message='排名计算完成')
+            self.info_text.set('排名计算完成')
+            rank_btn.config(state=NORMAL)
+            self.btn_unfreeze()
 
         rank_page = ttk.Frame(master=app, padding=20)
-        item_frame = ttk.Frame(master=rank_page, padding=(20, 0, 20, 0))
-        item_frame.grid(row=0, column=0, sticky='n')
-        item_frame2 = ttk.Frame(master=rank_page, padding=(20, 0, 20, 0))
-        item_frame2.grid(row=0, column=1, sticky='n')
+        subject_item_frame = ttk.Frame(master=rank_page, padding=(20, 0, 20, 0))
+        subject_item_frame.grid(row=0, column=0, sticky='n')
+        group_item_frame = ttk.Frame(master=rank_page, padding=(20, 0, 20, 0))
+        group_item_frame.grid(row=0, column=1, sticky='n')
         btn_frame = ttk.Frame(master=rank_page, padding=(20, 0, 20, 0))
         btn_frame.grid(row=0, column=2)
-        ttk.Label(master=item_frame, text='排名科目', font=('黑体', 12)).grid(row=0, column=0, pady=10, sticky='w')
-        ttk.Label(master=item_frame2, text='排名分组', font=('黑体', 12)).grid(row=0, column=1, pady=10, sticky='w')
+        ttk.Label(master=subject_item_frame, text='排名科目', font=('黑体', 12)).grid(row=0, column=0, pady=10,
+                                                                                      sticky='w')
+        ttk.Label(master=group_item_frame, text='排名分组', font=('黑体', 12)).grid(row=0, column=0, pady=10,
+                                                                                    sticky='w')
+
+        select_all_var1 = ttk.StringVar()
+        cb = ttk.Checkbutton(master=subject_item_frame, text='全选', variable=select_all_var1,
+                             onvalue='全选', offvalue='', command=lambda: select_all1(select_all_var1, checkbutton_var, checkbutton_name))
+        cb.grid(row=1, column=0, pady=5, sticky='w')
 
         possible_subjects = ['语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
                              '生物', '总分']
         possible_subjects_convert = [f'{item}转换分' for item in possible_subjects]
         possible_subjects_new = possible_subjects + possible_subjects_convert
 
-        self.checkbutton_var = []
-        self.checkbutton_name = []
+        checkbutton_var = []
+        checkbutton_name = []
         for i, item in enumerate(self.title):
             if item in possible_subjects_new:
-                self.checkbutton_var.append(ttk.StringVar())
-                cb = ttk.Checkbutton(master=item_frame, text=f'{i + 1:0>2d} {item}',
-                                     variable=self.checkbutton_var[-1],
+                checkbutton_var.append(ttk.StringVar())
+                cb = ttk.Checkbutton(master=subject_item_frame, text=f'{i + 1:0>2d} {item}',
+                                     variable=checkbutton_var[-1],
                                      onvalue=item, offvalue='')
-                cb.grid(row=i + 1, column=0, pady=3, sticky='w')
-                self.checkbutton_name.append(item)
+                cb.grid(row=i + 2, column=0, pady=3, sticky='w')
+                checkbutton_name.append(item)
 
-        self.checkbutton_rank_group_var = []
-        self.checkbutton_rank_group_name = []
+        select_all_var2 = ttk.StringVar()
+        cb = ttk.Checkbutton(master=group_item_frame, text='全选', variable=select_all_var2,
+                             onvalue='全选', offvalue='', command=lambda: select_all1(select_all_var2, checkbutton_rank_group_var, checkbutton_rank_group_name))
+        cb.grid(row=1, column=0, pady=5, sticky='w')
+
+        checkbutton_rank_group_var = []
+        checkbutton_rank_group_name = []
         for i, item in enumerate(self.title):
             if item not in possible_subjects_new:
-                self.checkbutton_rank_group_var.append(ttk.StringVar())
-                cb = ttk.Checkbutton(master=item_frame2, text=f'{i + 1:0>2d} {item}',
-                                     variable=self.checkbutton_rank_group_var[-1],
+                checkbutton_rank_group_var.append(ttk.StringVar())
+                cb = ttk.Checkbutton(master=group_item_frame, text=f'{i + 1:0>2d} {item}',
+                                     variable=checkbutton_rank_group_var[-1],
                                      onvalue=item, offvalue='')
-                cb.grid(row=i + 1, column=1, pady=3, sticky='w')
-                self.checkbutton_rank_group_name.append(item)
+                cb.grid(row=i + 2, column=0, pady=3, sticky='w')
+                checkbutton_rank_group_name.append(item)
 
-        ttk.Button(master=btn_frame, text='计算排名', command=rank_score).grid(row=0, column=0, pady=10)
+        rank_btn = ttk.Button(master=btn_frame, text='计算排名', command=rank_score)
+        rank_btn.grid(row=0, column=0, pady=10)
         ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=1, column=0, pady=10)
+        ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=2, column=0, pady=20)
 
         self.grid_forget()
         rank_page.grid()
@@ -380,6 +403,25 @@ class App(ttk.Frame):
         messagebox.showinfo(message='文件保存成功')
 
 
+def sort_rule(score):
+    """定义排序规则"""
+    if score is None or score == '':
+        return 0
+    else:
+        return float(score)
+
+
+def select_all1(select_all_var, checkbutton_var, checkbutton_name):
+    """全选和取消全选"""
+    if select_all_var.get():
+        for index, var in enumerate(checkbutton_var):
+            name = checkbutton_name[index]
+            var.set(name)
+    else:
+        for var in checkbutton_var:
+            var.set('')
+
+
 def close_handle():
     if messagebox.askyesno(title='退出确认', message='确定要退出吗？'):
         app.destroy()
@@ -388,7 +430,7 @@ def close_handle():
 if __name__ == "__main__":
     app = ttk.Window(title="成绩计算程序")
     app.iconbitmap('green_apple.ico')
-    App(app)
     app.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，点击关闭时按钮，触发事件
     app.place_window_center()
+    App(app)
     app.mainloop()

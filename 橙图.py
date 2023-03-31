@@ -4,7 +4,6 @@ from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话�
 
 import fitz  # pymupdf库，操作PDF文件，可转换成图片
 import ttkbootstrap as ttk
-from ttkbootstrap.toast import ToastNotification
 from ttkbootstrap.constants import *
 from PIL import Image
 from PIL import UnidentifiedImageError
