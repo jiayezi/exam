@@ -12,7 +12,7 @@ from openpyxl import Workbook
 from win32com import client
 
 
-def initialize():
+def unfreeze():
     """释放文本框，清空文本框"""
     info_text.config(state=NORMAL)
     output_text.delete(1.0, END)  # 删除文本框里的内容
@@ -21,7 +21,7 @@ def initialize():
 
 def heading():
     """提取数字"""
-    initialize()
+    unfreeze()
     data = input_text.get(1.0, END)
     data = data.strip()
     if data:
@@ -30,20 +30,20 @@ def heading():
         for i, s in enumerate(data_list):
             data_obj = search(r'\d{1,2}', s)
             if not data_obj:
-                info_text.insert('end', '没有找到数字\n')
-                over()
+                info_text.insert('end', '没有找到数字\n', 'center')
+                freeze()
                 return
             data = data_obj.group()
             text += f'{data}\n'
         output_text.insert('end', text)
-        info_text.insert('end', '提取完成\n')
+        info_text.insert('end', '提取完成\n', 'center')
         output_text.focus()
-    over()
+    freeze()
 
 
 def difficulty_level():
     """把数字放大100倍"""
-    initialize()
+    unfreeze()
     counter = 0
 
     data = input_text.get(1.0, END)
@@ -59,20 +59,20 @@ def difficulty_level():
                 num *= 100
             except ValueError:
                 text += '\n'
-                info_text.insert('end', f'第 {i + 1} 行不是纯数字，处理失败\n')
+                info_text.insert('end', f'第 {i + 1} 行不是纯数字，处理失败\n', 'center')
             else:
                 text += f'{str(int(num))}\n'
                 counter += 1
 
         output_text.insert('end', text[:-1])
-        info_text.insert('end', f'处理了 {counter} 个难度值\n')
+        info_text.insert('end', f'处理了 {counter} 个难度值\n', 'center')
         output_text.focus()
-    over()
+    freeze()
 
 
 def single_choice():
     """提取字符串里的A、B、C、D、E、F、G"""
-    initialize()
+    unfreeze()
     data = input_text.get(1.0, END)  # 获取文本框里的数据
     data = data.strip()
     if data:
@@ -83,9 +83,9 @@ def single_choice():
                 text += f'{s}\n'
                 counter += 1
         output_text.insert('end', text[:-1])
-        info_text.insert('end', f'提取了 {counter} 个答案\n')
+        info_text.insert('end', f'提取了 {counter} 个答案\n', 'center')
         output_text.focus()
-    over()
+    freeze()
 
 
 def skill_requirements():
@@ -94,7 +94,7 @@ def skill_requirements():
     data = data.strip()
     if not data:
         return
-    initialize()
+    unfreeze()
     data_list = data.split('\n')
     title = data_list[0]
     rows = data_list[1:]
@@ -110,18 +110,18 @@ def skill_requirements():
                 text += f'{title_list[i]}/'
         if blank:
             text += f'\n'
-            info_text.insert('end', f'第 {row_index + 2} 行没有符号\n')
+            info_text.insert('end', f'第 {row_index + 2} 行没有符号\n', 'center')
         text = text[:-1]+'\n'
     output_text.insert('end', text[:-1])
 
-    info_text.insert('end', '全部处理完成\n')
+    info_text.insert('end', '全部处理完成\n', 'center')
     output_text.focus()
-    over()
+    freeze()
 
 
 def OMR():
     """删除制表符，把长度不是1的字符串替换成."""
-    initialize()
+    unfreeze()
 
     data = input_text.get(1.0, END)
     data = data.strip().replace(' ', '.')
@@ -138,14 +138,14 @@ def OMR():
                 counter += 1
         output_text.insert('end', '\n')
 
-    info_text.insert('end', f'替换 {counter} 处多选\n')
+    info_text.insert('end', f'替换 {counter} 处多选\n', 'center')
     output_text.focus()
-    over()
+    freeze()
 
 
 def multiple_OMR():
     """合并不定向选择答案"""
-    initialize()
+    unfreeze()
 
     data = input_text.get(1.0, END)
     data = data.strip().replace(' ', '.')
@@ -161,7 +161,7 @@ def multiple_OMR():
         output_text.insert('end', '\n')
 
     output_text.focus()
-    over()
+    freeze()
 
 
 def format_table():
@@ -171,7 +171,7 @@ def format_table():
                                            defaultextension='.xlsx')
     if not open_path:
         return
-    initialize()
+    unfreeze()
     excel = client.Dispatch("Excel.Application")
     excel.Visible = False
     excel.DisplayAlerts = False
@@ -184,22 +184,22 @@ def format_table():
     file_name = os.path.split(open_path)[1]
     num = file_name[:file_name.rfind('.')]
 
-    # 检查选择题答案的数量
+    # 检查选择题答案的数量 找出这一列的最大值和最小值，如果两个值相等，就证明这一列的所有数字都一样
     range_obj = ws.Range('C2')
     range_obj.EntireColumn.Insert()
     ws.Cells(2, 3).Value = '=len(B2)'
 
     sourceRange = ws.Range(ws.Cells(2, 3), ws.Cells(2, 3))
     fillRange = ws.Range(ws.Cells(2, 3), ws.Cells(max_row, 3))
-    sourceRange.AutoFill(Destination=fillRange)
+    sourceRange.AutoFill(Destination=fillRange)  # 模拟自动填充
 
     ws.Cells(max_row + 1, 3).Value = f'=MIN(C2:C{max_row})'
     ws.Cells(max_row + 2, 3).Value = f'=MAX(C2:C{max_row})'
 
     if ws.Cells(max_row + 1, 3).Value == ws.Cells(max_row + 2, 3).Value:
-        info_text.insert(END, f'选择题答案数量一样\n')
+        info_text.insert(END, f'选择题答案数量一样\n', 'center')
     else:
-        info_text.insert(END, '选择题答案数量不一样，请检查这个科目是否有多选题 Σ(ŎдŎ|||)ﾉﾉ\n')
+        info_text.insert(END, '选择题答案数量不一样，请检查这个科目是否有多选题 Σ(ŎдŎ|||)ﾉﾉ\n', 'center')
     ws.Cells(max_row + 1, 3).Value = None
     ws.Cells(max_row + 2, 3).Value = None
     ws.Columns(3).Delete()
@@ -213,13 +213,13 @@ def format_table():
         # 计算最大值
         ws.Cells(max_row + 2, col).Value = f'=MAX({col_name}2:{col_name}{max_row})'
         output_text.insert(END, f'{ws.Cells(max_row + 2, col).Value}\n')
-    info_text.insert('end', '题目最高分查找完成\n')
+    info_text.insert('end', '题目最高分查找完成\n', 'center')
     # 删除2行临时数据
     ws.Rows(max_row + 1).Delete()
     ws.Rows(max_row + 1).Delete()
 
     # 设置表格为文本格式
-    ws.Cells.NumberFormatLocal = "@"
+    # ws.Cells.NumberFormatLocal = "@"
 
     # 插入单行单列
     range_obj = ws.Range('A1')
@@ -238,11 +238,11 @@ def format_table():
     wb.Close(SaveChanges=1)  # 保存并关闭
     excel.Quit()
 
-    info_text.insert(END, '小分表修改完成\n')
+    info_text.insert(END, '小分表修改完成\n', 'center')
     info_text.yview_moveto(1)
     output_text.focus()
 
-    over()
+    freeze()
 
 
 def total_score_level():
@@ -254,14 +254,14 @@ def total_score_level():
         data = text0.get(1.0, END)
         if not data.strip():
             return
-        initialize()
+        unfreeze()
         nonlocal all_data_list
         nonlocal counter
         all_data_list.append(data)
         counter += 1
         ToastNotification(title='信息', message=f'已提交 {counter} 个科目成绩', duration=3000, position=(0, 220, 's'))\
             .show_toast()
-        over()
+        freeze()
         text0.delete(1.0, END)
         text0.focus()
 
@@ -269,7 +269,7 @@ def total_score_level():
         nonlocal all_data_list
         if not all_data_list:
             return
-        initialize()
+        unfreeze()
         # 存储考号和分数的字典
         student_dict = {}
         titles = ['考号']
@@ -292,11 +292,11 @@ def total_score_level():
                         student_dict[student_id] = [0.0 for _ in range(index + 1)]
                     student_dict[student_id][index] = score
             except IndexError:
-                info_text.insert(END, '数据不完整，处理失败，请同时提交考号和成绩 (ー_ー)!!\n')
+                info_text.insert(END, '数据不完整，处理失败，请同时提交考号和成绩 (ー_ー)!!\n', 'center')
                 top.destroy()
                 return
             except ValueError:
-                info_text.insert(END, '成绩字段不是纯数字，处理失败 (ー_ー)!!\n')
+                info_text.insert(END, '成绩字段不是纯数字，处理失败 (ー_ー)!!\n', 'center')
                 top.destroy()
                 return
             # 把所有学生的下一个科目的分数初始化为0分
@@ -329,10 +329,10 @@ def total_score_level():
                                                  defaultextension='.xlsx')
         if file_path:
             wb.save(file_path)
-            info_text.insert(END, '文件保存成功\n')
+            info_text.insert(END, '文件保存成功\n', 'center')
             wb.close()
         top.destroy()
-        over()
+        freeze()
 
     top = ttk.Toplevel()
     top.title('计算总分')
@@ -415,13 +415,10 @@ def split_score_level():
     top.mainloop()
 
 
-def over():
+def freeze():
     """改变文本颜色，禁用文本框"""
-    info_text.tag_add('forever', 1.0, END)
-    # 使用 tag_config() 来改变标签"forever"的文字颜色和大小
-    info_text.tag_config('forever', foreground='green', font=('黑体', 11), justify="center", spacing3=5)
     info_text.config(state=DISABLED)
-    info_text.yview_moveto(1)  # 文本更新滚动显示
+    info_text.yview_moveto(1)  # 滚动到文本末尾
 
 
 def show_message():
@@ -457,14 +454,14 @@ def about():
 
 def select_all(event):
     info_text.config(state=NORMAL)
-    info_text.insert(END, '选中全部\n')
-    over()
+    info_text.insert(END, '选中全部\n', 'center')
+    freeze()
 
 
 def cp_msg(event):
     info_text.config(state=NORMAL)
-    info_text.insert(END, '已复制到剪贴板\n')
-    over()
+    info_text.insert(END, '已复制到剪贴板\n', 'center')
+    freeze()
 
 
 def close_handle():
@@ -508,12 +505,12 @@ output_text.bind('<Control-C>', cp_msg)
 output_text.bind('<Control-x>', cp_msg)
 output_text.bind('<Control-X>', cp_msg)
 
-info_text = ttk.Text(root, height=6, border=-1)
+info_text = ttk.Text(root, height=6, font=('黑体', 12), spacing3=8, border=-1, state=DISABLED)
 info_text.pack(pady=10, padx=100, fill=X)
-info_text.config(state=DISABLED)
+info_text.tag_config('center', foreground='green', justify='center')
 
 # 按钮区域
-buttonbar = ttk.Labelframe(root, text='选择功能', labelanchor="n")
+buttonbar = ttk.Labelframe(root, text='选择功能', labelanchor='n')
 buttonbar.pack(pady=0,  padx=100, ipady=20)
 
 btn = ttk.Button(master=buttonbar, text='题目', command=heading)

@@ -27,10 +27,34 @@ class MyThread(Thread):
         self.func(*self.args)
 
 
+def sort_rule(score):
+    """定义排序规则"""
+    if score is None or score == '':
+        return 0
+    else:
+        return float(score)
+
+
+def select_all1(select_all_var, checkbutton_var, checkbutton_name):
+    """全选和取消全选"""
+    if select_all_var.get():
+        for index, var in enumerate(checkbutton_var):
+            name = checkbutton_name[index]
+            var.set(name)
+    else:
+        for var in checkbutton_var:
+            var.set('')
+
+
+def close_handle():
+    if messagebox.askyesno(title='退出确认', message='确定要退出吗？'):
+        app.destroy()
+
+
 class App(ttk.Frame):
 
-    def __init__(self, index_frame):
-        super().__init__(index_frame, padding=10)
+    def __init__(self, master):
+        super().__init__(master, padding=10)
         self.title = []
         self.student_objs = []
         self.createUI()
@@ -53,7 +77,7 @@ class App(ttk.Frame):
                                    command=lambda: MyThread(self.create_rank_page),
                                    state=DISABLED)
         self.rank_btn.grid(row=3, column=0, pady=10)
-        self.save_btn = ttk.Button(master=self.btn_frame, text='保存文件', command=lambda: MyThread(self.save_file),
+        self.save_btn = ttk.Button(master=self.btn_frame, text='保存文档', command=lambda: MyThread(self.save_file),
                                    state=DISABLED)
         self.save_btn.grid(row=4, column=0, pady=10)
         self.info_text = ttk.StringVar()
@@ -119,26 +143,26 @@ class App(ttk.Frame):
                     selected_subject_index.append(int(index))
 
             # 加载配置文件，读取领先率、赋分区间和等级
-            rateT = []
-            rateY = []
-            dict_dj = {}
+            rate_exceed = []
+            rate_dist = []
+            grade_dict = {}
             with open('convert.conf', 'rt', encoding='utf8') as f:
                 data = f.read()
             row_list = data.split('\n')
             rate_sum = 0
             for index, row in enumerate(row_list[1:]):
                 value_list = row.split('\t')
-                dict_dj[index] = value_list[0]
+                grade_dict[index] = value_list[0]
                 rg = (int(value_list[1]), int(value_list[2]))
-                rateY.append(rg)
+                rate_dist.append(rg)
                 rate_sum += int(value_list[3])
                 value = (100 - rate_sum) / 100.0
-                rateT.append(value)
+                rate_exceed.append(value)
 
             # 手动配置领先率、赋分区间和等级
-            # rateT = (0.97, 0.9, 0.74, 0.50, 0.26, 0.1, 0.03, 0)
-            # rateY = ((100, 91), (90, 81), (80, 71), (70, 61), (60, 51), (50, 41), (40, 31), (30, 21))
-            # dict_dj = {0: 'A', 1: 'B+', 2: 'B', 3: 'C+', 4: 'C', 5: 'D+', 6: 'D', 7: 'E'}
+            # rate_exceed = (0.97, 0.9, 0.74, 0.50, 0.26, 0.1, 0.03, 0)
+            # rate_dist = ((100, 91), (90, 81), (80, 71), (70, 61), (60, 51), (50, 41), (40, 31), (30, 21))
+            # grade_dict = {0: 'A', 1: 'B+', 2: 'B', 3: 'C+', 4: 'C', 5: 'D+', 6: 'D', 7: 'E'}
 
             for sub_index, subject in enumerate(selected_subject_name):
                 score_index = selected_subject_index[sub_index]
@@ -157,7 +181,7 @@ class App(ttk.Frame):
                         break
 
                 # 获取原始分等级区间
-                rateS = [[float(self.student_objs[0].row[score_index])]]
+                rate_src = [[float(self.student_objs[0].row[score_index])]]
                 rate = (student_num - 1) / student_num
                 previous_score = -1  # 上个分数，初始值为-1
                 temp_dj = 0  # 初始等级和索引
@@ -170,17 +194,17 @@ class App(ttk.Frame):
                     if current_score != previous_score:
                         previous_score = current_score
                         rate = (student_num - row_index - 1) / student_num  # 领先率
-                        for t_index, value in enumerate(rateT):
+                        for e_index, value in enumerate(rate_exceed):
                             if rate >= value:
-                                if temp_dj != t_index:
-                                    temp_dj = t_index
-                                    rateS[temp_dj - 1].append(
+                                if temp_dj != e_index:
+                                    temp_dj = e_index
+                                    rate_src[temp_dj - 1].append(
                                         float(self.student_objs[row_index - 1].row[score_index]))
-                                    rateS.append([float(student.row[score_index])])
+                                    rate_src.append([float(student.row[score_index])])
                                 break
-                # rateS[-1].append(float(student_data[-1][extra + i]))
-                rateS[-1].append(min_score)
-                print(f'{subject}原始分等级区间：{rateS}')
+                # rate_src[-1].append(float(student_data[-1][extra + i]))
+                rate_src[-1].append(min_score)
+                # print(f'{subject}原始分等级区间：{rate_src}')
 
                 # 计算赋分成绩
                 for student in self.student_objs:
@@ -191,17 +215,17 @@ class App(ttk.Frame):
                         continue
                     score = float(score_str)
                     xsdj = 0
-                    for index, dj_score in enumerate(rateS):
+                    for index, dj_score in enumerate(rate_src):
                         if dj_score[0] >= score >= dj_score[1]:
                             xsdj = index
                             break
-                    m = rateS[xsdj][1]
-                    n = rateS[xsdj][0]
-                    a = rateY[xsdj][1]
-                    b = rateY[xsdj][0]
+                    m = rate_src[xsdj][1]
+                    n = rate_src[xsdj][0]
+                    a = rate_dist[xsdj][1]
+                    b = rate_dist[xsdj][0]
                     converts = (b * (score - m) + a * (n - score)) / (n - m)
                     student.row.append(round(converts))
-                    student.row.append(dict_dj[xsdj])
+                    student.row.append(grade_dict[xsdj])
                 self.title.append(f'{subject}转换分')
                 self.title.append(f'{subject}等级')
 
@@ -391,6 +415,8 @@ class App(ttk.Frame):
         if not path:
             return
 
+        self.btn_freeze()
+        self.info_text.set('正在生成Excel文档')
         wb = Workbook(write_only=True)
         ws = wb.create_sheet()
 
@@ -400,31 +426,8 @@ class App(ttk.Frame):
 
         wb.save(path)
         wb.close()
-        messagebox.showinfo(message='文件保存成功')
-
-
-def sort_rule(score):
-    """定义排序规则"""
-    if score is None or score == '':
-        return 0
-    else:
-        return float(score)
-
-
-def select_all1(select_all_var, checkbutton_var, checkbutton_name):
-    """全选和取消全选"""
-    if select_all_var.get():
-        for index, var in enumerate(checkbutton_var):
-            name = checkbutton_name[index]
-            var.set(name)
-    else:
-        for var in checkbutton_var:
-            var.set('')
-
-
-def close_handle():
-    if messagebox.askyesno(title='退出确认', message='确定要退出吗？'):
-        app.destroy()
+        self.info_text.set('Excel文档已生成')
+        self.btn_unfreeze()
 
 
 if __name__ == "__main__":

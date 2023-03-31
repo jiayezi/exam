@@ -12,7 +12,7 @@ from openpyxl import load_workbook
 from win32com import client  # 操作office文档，转换格式
 
 
-def initialize():
+def unfreeze():
     """取消冻结文本框，清空文本框"""
     info_text.config(state=NORMAL)
     info_text.delete(1.0, END)
@@ -73,7 +73,7 @@ def long_png(path, output_name):
                                              defaultextension='.png')
     if save_path:
         result.save(save_path)
-        info_text.insert(END, '图片保存成功\n')
+        info_text.insert(END, '图片保存成功\n', 'center')
 
 
 def word_to_images():
@@ -100,7 +100,7 @@ def pdf_to_images(pdf_path=None):
                                               defaultextension='.pdf')
 
     if pdf_path:
-        initialize()
+        unfreeze()
         file_name = os.path.basename(pdf_path)
         file_name = file_name[:file_name.rfind('.')]
 
@@ -119,7 +119,7 @@ def pdf_to_images(pdf_path=None):
             except PermissionError:
                 pass
 
-    over()
+    freeze()
 
 
 def cut_out_level():
@@ -132,7 +132,7 @@ def cut_out_level():
             top.destroy()
             return
 
-        initialize()
+        unfreeze()
         data_tuple = (left_sb.get(), top_sb.get(), right_sb.get(), bottom_sb.get())
         pixel_list = [0, 0, 0, 0]
         for i, value in enumerate(data_tuple):
@@ -146,8 +146,8 @@ def cut_out_level():
             image = image.crop(box)
             image.save(img, quality=95, optimize=True)
         top.destroy()
-        info_text.insert(END, '裁剪完毕')
-        over()
+        info_text.insert(END, '裁剪完毕\n', 'center')
+        freeze()
 
     top = ttk.Toplevel()
     top.title('裁剪图片')
@@ -179,13 +179,13 @@ def choice_level():
     """根据输入的字母输出对应的图片"""
 
     def choice():
-        initialize()
+        unfreeze()
         data = text0.get(1.0, END).strip()
         img_path = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
         if not (data and img_path):
             top.destroy()
-            info_text.insert(END, '没有提供足够的数据\n')
-            over()
+            info_text.insert(END, '没有提供足够的数据\n', 'center')
+            freeze()
             return
         sb_data = start_sb.get()
         start = 0
@@ -223,8 +223,8 @@ def choice_level():
                     result.paste(img, box=(width, round(height / 2 - h / 2)))
                     width += w
                 result.save(f'{img_path}/{add}{counter + start}.png')
-        info_text.insert(END, f'制作了{counter}个答案\n')
-        over()
+        info_text.insert(END, f'制作了{counter}个答案\n', 'center')
+        freeze()
         top.destroy()
 
     top = ttk.Toplevel()
@@ -261,7 +261,7 @@ def splice():
         img_path2 = filedialog.askdirectory(title='请选择答案文件夹', initialdir='F:/用户目录/桌面/')
         if not img_path2:
             return
-    initialize()
+    unfreeze()
     img_list = os.listdir(img_path)
     for img in img_list:
         if os.path.exists(img_path2 + '/' + img):
@@ -269,7 +269,7 @@ def splice():
                 img1 = Image.open(img_path + '/' + img)
                 img2 = Image.open(img_path2 + '/' + img)
             except UnidentifiedImageError:
-                info_text.insert(END, '一个文件不是图片格式，打开失败\n')
+                info_text.insert(END, '一个文件不是图片格式，打开失败\n', 'center')
                 continue
             img1_height = img1.height
             new_width = max(img1.width, img2.width)
@@ -281,13 +281,13 @@ def splice():
             result.save(img_path + '/' + img)
             os.remove(img_path2 + '/' + img)
         else:
-            info_text.insert(END, f'{img[:-4]}没有答案\n')
+            info_text.insert(END, f'{img[:-4]}没有答案\n', 'center')
     # 删除空文件夹
     if not os.listdir(img_path2):
         os.rmdir(img_path2)
 
-    info_text.insert(END, '拼接完成\n')
-    over()
+    info_text.insert(END, '拼接完成\n', 'center')
+    freeze()
 
 
 def copy_rename():
@@ -297,7 +297,7 @@ def copy_rename():
                                            defaultextension='.png')
     if not img_list:
         return
-    initialize()
+    unfreeze()
     file_path = os.path.dirname(img_list[0])
     for img in img_list:
         name, extension = os.path.basename(img).split('.')  # 文件名，扩展名
@@ -313,9 +313,9 @@ def copy_rename():
                 shutil.copyfile(img, f'{file_path}/{fs}{i}.{extension}')
             os.rename(img, f'{file_path}/{fs}{end}.{extension}')
         else:
-            info_text.insert(END, f'文件名 {name} 格式不正确，跳过修改 (ー_ー)!!\n')
-    info_text.insert(END, '修改完成\n')
-    over()
+            info_text.insert(END, f'文件名 {name} 格式不正确，跳过修改 (ー_ー)!!\n', 'center')
+    info_text.insert(END, '修改完成\n', 'center')
+    freeze()
 
 
 def add_point():
@@ -325,11 +325,11 @@ def add_point():
                                            defaultextension='.png')
     if not img_list:
         return
-    initialize()
+    unfreeze()
     point_str = simpledialog.askstring('输入', '请输入小题数量：')
     if point_str is None or not point_str.isdigit():
-        info_text.insert(END, '必须输入纯数字\n')
-        over()
+        info_text.insert(END, '必须输入纯数字\n', 'center')
+        freeze()
         return
     point_num = int(point_str)
     file_path = os.path.dirname(img_list[0])
@@ -338,8 +338,8 @@ def add_point():
         for i in range(1, point_num):
             shutil.copyfile(img, f'{file_path}/{name}-{i}.{extension}')
         os.rename(img, f'{file_path}/{name}-{point_num}.{extension}')
-    info_text.insert(END, '完成\n')
-    over()
+    info_text.insert(END, '完成\n', 'center')
+    freeze()
 
 
 def rename_id():
@@ -353,7 +353,7 @@ def rename_id():
     if not (wb_file and img_dir):
         return
 
-    initialize()
+    unfreeze()
     subject_id = {'语文': '01', '数学': '02', '数学文': '03', '数学理': '04', '英语': '05', '政治': '06', '历史': '07',
                   '地理': '08', '物理': '09', '化学': '10', '生物': '11', '科学': '13', '品德与社会': '14',
                   '道德与法治': '15'}
@@ -377,7 +377,7 @@ def rename_id():
                 if os.path.exists(img_path):
                     shutil.copyfile(img_path, img_id_path)
                 else:
-                    info_text.insert(END, f'图片 {img_name}.png 不存在 (ー_ー)!!\n')
+                    info_text.insert(END, f'图片 {img_name}.png 不存在 (ー_ー)!!\n', 'center')
                     go_on = messagebox.askyesno(message='是否继续？')
                     if not go_on:
                         complete = False
@@ -390,10 +390,10 @@ def rename_id():
                 os.rename(subject_dir + '/' + img, subject_dir + '/03/' + img)
             shutil.copytree(subject_dir + '/03', subject_dir + '/13')
             os.rename(subject_dir, img_dir + '/' + subject_id[subject])
-            info_text.insert(END, f'{subject}处理完成\n')
-    info_text.insert(END, '全部完成\n')
+            info_text.insert(END, f'{subject}处理完成\n', 'center')
+    info_text.insert(END, '全部完成\n', 'center')
     wb.close()
-    over()
+    freeze()
 
 
 def subject_dir(event):
@@ -448,13 +448,10 @@ def subject_dir(event):
     top.mainloop()
 
 
-def over():
-    """改变文本颜色，禁用文本框"""
-    info_text.tag_add('forever', 1.0, END)
-    # 使用 tag_config() 来改变标签"forever"的文字颜色和大小
-    info_text.tag_config('forever', foreground='green', font=('黑体', 12), justify="center", spacing3=5)
+def freeze():
+    """禁用文本框"""
     info_text.config(state=DISABLED)
-    info_text.yview_moveto(1)  # 文本更新滚动显示
+    info_text.yview_moveto(1)  # 滚动到文本末尾
 
 
 def show_message():
@@ -497,11 +494,10 @@ help_menu.add_command(label='介绍', command=show_message)
 help_menu.add_command(label='关于', command=about)
 menubar.add_cascade(label='帮助', menu=help_menu)
 
-info_text = ttk.Text(root, width=60, height=5, border=-1)
+info_text = ttk.Text(root, width=60, height=5, border=-1, font=('黑体', 12), spacing3=8)
 info_text.pack(pady=20)
-info_text.insert(END, '请选择功能\n')
-info_text.tag_add('forever', 1.0, END)
-info_text.tag_config('forever', foreground="green", font=('黑体', 12), spacing3=8, justify=CENTER)
+info_text.tag_config('center', foreground='green', justify='center')
+info_text.insert(END, '请选择功能\n', 'center')
 info_text.config(state=DISABLED)
 
 buttonbar1 = ttk.Frame(root)
