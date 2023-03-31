@@ -107,13 +107,6 @@ def submit_task():
 
 # 设置窗口
 root = ttk.Window(themename='cerculean', title='答题卡拼接')
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-offset_x = int((screen_width - 450) / 2)
-offset_y = int((screen_height - 350) / 2)
-root.geometry(f'450x350+{offset_x}+{offset_y}')  # 窗口大小
-root.resizable(False, False)
-root.iconbitmap('green_apple.ico')
 
 # 设置控件
 frame = ttk.Frame(root, padding=20)
@@ -150,4 +143,6 @@ submit_btn.grid(row=5, column=0, columnspan=3, ipadx=10, pady=20)
 progress = ttk.Progressbar(frame, length=380, value=0)
 progress.grid(row=6, column=0, columnspan=3, pady=10)
 
+root.place_window_center()
+root.iconbitmap('green_apple.ico')
 root.mainloop()
