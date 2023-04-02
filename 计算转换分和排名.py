@@ -56,7 +56,7 @@ def close_handle():
 class App(ttk.Frame):
 
     def __init__(self, master):
-        super().__init__(master, padding=10)
+        super().__init__(master, padding=20)
         self.title = []
         self.student_objs = []
         self.createUI()
@@ -65,10 +65,10 @@ class App(ttk.Frame):
         """创建界面元素"""
         self.grid(row=0, column=0)
 
-        self.btn_frame = ttk.Frame(master=self, padding=(20, 0, 20, 0))
-        self.btn_frame.grid(row=0, column=0, padx=80, pady=10, sticky='n')
+        self.btn_frame = ttk.Frame(master=self)
+        self.btn_frame.grid(row=0, column=0, padx=80, sticky='n')
 
-        ttk.Label(master=self.btn_frame, text='选择功能', font=('黑体', 12)).grid(row=0, column=0, pady=10)
+        ttk.Label(master=self.btn_frame, text='选择功能', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
         self.open_btn = ttk.Button(master=self.btn_frame, text='打开文档', command=self.open_file)
         self.open_btn.grid(row=1, column=0, pady=10)
         self.convert_btn = ttk.Button(master=self.btn_frame, text='成绩赋分',
@@ -83,7 +83,7 @@ class App(ttk.Frame):
                                    state=DISABLED)
         self.save_btn.grid(row=4, column=0, pady=10)
         self.info_text = ttk.StringVar()
-        ttk.Label(master=self, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=1, column=0, pady=10)
+        ttk.Label(master=self.btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=5, column=0, pady=10)
 
     def btn_freeze(self):
         self.open_btn.config(state=DISABLED)
@@ -176,16 +176,16 @@ class App(ttk.Frame):
 
         def modify_template(template_name):
             """读取指定文件，创建输入控件，把文件内容添加到输入框"""
-            modify_frame = ttk.Frame(master=top, padding=(20, 10, 20, 20))
+            modify_frame = ttk.Frame(master=top, padding=20)
             et_frame = ttk.Frame(master=modify_frame)
             et_frame.grid(row=0, column=0, sticky='n')
-            btn_frame = ttk.Frame(master=modify_frame, padding=(10, 0, 0, 0))
-            btn_frame.grid(row=0, column=1)
+            btn_frame = ttk.Frame(master=modify_frame)
+            btn_frame.grid(row=0, column=1, padx=10)
 
-            ttk.Label(master=et_frame, text='等级', font=('黑体', 10)).grid(row=0, column=0, pady=10)
-            ttk.Label(master=et_frame, text='高分', font=('黑体', 10)).grid(row=0, column=1, pady=10)
-            ttk.Label(master=et_frame, text='低分', font=('黑体', 10)).grid(row=0, column=2, pady=10)
-            ttk.Label(master=et_frame, text='占比(%)', font=('黑体', 10)).grid(row=0, column=3, pady=10)
+            ttk.Label(master=et_frame, text='等级', font=('黑体', 10)).grid(row=0, column=0, pady=(0, 10))
+            ttk.Label(master=et_frame, text='高分', font=('黑体', 10)).grid(row=0, column=1, pady=(0, 10))
+            ttk.Label(master=et_frame, text='低分', font=('黑体', 10)).grid(row=0, column=2, pady=(0, 10))
+            ttk.Label(master=et_frame, text='占比(%)', font=('黑体', 10)).grid(row=0, column=3, pady=(0, 10))
 
             # 读取文件，创建输入框
             with open(f'conf/{template_name}', 'rt', encoding='utf8') as f:
@@ -212,10 +212,10 @@ class App(ttk.Frame):
             file_name_et.grid(row=20, column=1, columnspan=3, pady=10)
             file_name_et.insert('end', template_name)
 
-            ttk.Button(master=btn_frame, text='新增一级', command=lambda: add_et_row(et_frame, et_obj)).grid(padx=5, pady=5)
-            ttk.Button(master=btn_frame, text='删除一级', command=lambda: del_et_row(et_obj)).grid(padx=5, pady=5)
-            ttk.Button(master=btn_frame, text='保存模板', command=lambda: save_template(file_name_et.get(), et_obj)).grid(padx=5, pady=5)
-            ttk.Button(master=btn_frame, text='返回上页', command=go_to_top).grid(padx=5, pady=5)
+            ttk.Button(master=btn_frame, text='新增一级', command=lambda: add_et_row(et_frame, et_obj)).grid(pady=5)
+            ttk.Button(master=btn_frame, text='删除一级', command=lambda: del_et_row(et_obj)).grid(pady=5)
+            ttk.Button(master=btn_frame, text='保存模板', command=lambda: save_template(file_name_et.get(), et_obj)).grid(pady=5)
+            ttk.Button(master=btn_frame, text='返回上页', command=go_to_top).grid(pady=5)
 
             list_frame.grid_forget()
             modify_frame.grid(sticky='n')
@@ -229,20 +229,23 @@ class App(ttk.Frame):
         top.place_window_center()
 
         new_template = '新模板'
-        list_frame = ttk.Frame(master=top, padding=(20, 10, 20, 20))
+        list_frame = ttk.Frame(master=top, padding=20)
         list_frame.grid(sticky='n')
-        ttk.Label(master=list_frame, text='模板列表', font=('黑体', 12)).grid(row=0, column=0, pady=10)
-        ttk.Button(master=list_frame, text='添加', command=lambda: modify_template(new_template)).grid(row=0, column=1, padx=5, pady=10)
-        ttk.Button(master=list_frame, text='关闭', command=close_top_level).grid(row=0, column=2, padx=5, pady=10)
+        ttk.Label(master=list_frame, text='模板名称', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
+        ttk.Label(master=list_frame, text='操作', font=('黑体', 12)).grid(row=0, column=1, columnspan=2, pady=(0, 10))
 
         # 读取指定目录里的所有文件，创建标签和按钮
         template_list = os.listdir('conf')
         for i, template in enumerate(template_list):
             if template == new_template:
                 continue
-            ttk.Label(master=list_frame, text=template, font=('黑体', 12), foreground='#336644').grid(row=i+1, column=0, padx=5, pady=5)
-            ttk.Button(master=list_frame, text='修改', command=lambda t=template: modify_template(t)).grid(row=i+1, column=1, padx=5, pady=5)
-            ttk.Button(master=list_frame, text='删除', command=lambda t=template: del_template(t)).grid(row=i + 1, column=2, padx=5,  pady=5)
+            ttk.Label(master=list_frame, text=template, font=('黑体', 12)).grid(row=i+1, column=0, padx=5, pady=5)
+            ttk.Button(master=list_frame, text='修改', command=lambda t=template: modify_template(t), bootstyle='outline').grid(row=i+1, column=1, padx=5, pady=5)
+            ttk.Button(master=list_frame, text='删除', command=lambda t=template: del_template(t), bootstyle='outline').grid(row=i + 1, column=2, padx=5,  pady=5)
+        ttk.Button(master=list_frame, text='添加', command=lambda: modify_template(new_template),
+                   bootstyle='outline').grid(row=len(template_list), column=1, padx=5, pady=5)
+        ttk.Button(master=list_frame, text='关闭', command=close_top_level, bootstyle='outline').grid(row=len(template_list), column=2,
+                                                                                                      padx=5, pady=5)
 
         top.mainloop()
 
@@ -386,12 +389,17 @@ class App(ttk.Frame):
             convert_btn.config(state=NORMAL)
             self.btn_unfreeze()
 
-        convert_page = ttk.Frame(master=app, padding=(20, 10, 20, 20))
+        convert_page = ttk.Frame(master=app, padding=20)
         item_frame = ttk.Frame(master=convert_page)
         item_frame.grid(row=0, column=0, padx=10, sticky='n')
         btn_frame = ttk.Frame(master=convert_page)
         btn_frame.grid(row=0, column=1, padx=10, sticky='s')
-        ttk.Label(master=item_frame, text='赋分科目', font=('黑体', 12)).grid(row=0, column=0, pady=10)
+        ttk.Label(master=item_frame, text='赋分科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
+        template_files = os.listdir('conf')
+        template_files.remove('新模板')
+        cb = ttk.Combobox(master=btn_frame, values=template_files, width=14)
+        cb.grid(row=0, column=0, pady=(0, 10))
+        cb.current(0)
 
         # 创建复选框
         select_all_var = ttk.StringVar()
@@ -413,17 +421,12 @@ class App(ttk.Frame):
                 checkbutton_name.append(item)
 
         # 创建按钮和标签
-        template_files = os.listdir('conf')
-        template_files.remove('新模板')
-        cb = ttk.Combobox(master=btn_frame, values=template_files, width=14)
-        cb.grid(row=0, column=0, pady=10)
-        cb.current(0)
         self.template_btn = ttk.Button(master=btn_frame, text='模板维护', command=self.convert_template_level)
         self.template_btn.grid(row=1, column=0, pady=5)
         convert_btn = ttk.Button(master=btn_frame, text='成绩赋分', command=convert_score)
         convert_btn.grid(row=2, column=0, pady=5)
         ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=3, column=0, pady=5)
-        ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=4, column=0, pady=5)
+        ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=4, column=0, pady=10)
 
         # 隐藏主页，显示转换分页面
         self.grid_forget()
@@ -500,16 +503,16 @@ class App(ttk.Frame):
             rank_btn.config(state=NORMAL)
             self.btn_unfreeze()
 
-        rank_page = ttk.Frame(master=app, padding=(20, 10, 20, 20))
+        rank_page = ttk.Frame(master=app, padding=20)
         subject_item_frame = ttk.Frame(master=rank_page)
         subject_item_frame.grid(row=0, column=0, padx=10, sticky='n')
         group_item_frame = ttk.Frame(master=rank_page)
         group_item_frame.grid(row=0, column=1, padx=10, sticky='n')
         btn_frame = ttk.Frame(master=rank_page)
         btn_frame.grid(row=0, column=2, padx=10, sticky='s')
-        ttk.Label(master=subject_item_frame, text='排名科目', font=('黑体', 12)).grid(row=0, column=0, pady=10,
+        ttk.Label(master=subject_item_frame, text='排名科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10),
                                                                                       sticky='w')
-        ttk.Label(master=group_item_frame, text='排名分组', font=('黑体', 12)).grid(row=0, column=0, pady=10,
+        ttk.Label(master=group_item_frame, text='排名分组', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10),
                                                                                     sticky='w')
         # 创建科目复选框
         select_all_var1 = ttk.StringVar()
@@ -585,7 +588,8 @@ class App(ttk.Frame):
 
 if __name__ == "__main__":
     app = ttk.Window(title="成绩计算程序")
-    app.iconbitmap('green_apple.ico')
+    app.iconbitmap(bitmap='green_apple.ico')
+    app.iconbitmap(default='green_apple.ico')
     app.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，点击关闭时按钮，触发事件
     app.place_window_center()
     App(app)
