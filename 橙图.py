@@ -482,9 +482,9 @@ def about():
 
 
 root = ttk.Window(themename='cerculean', title='橙图')
-root.geometry(f'600x400')  # 窗口大小
-root.resizable(False, False)
-root.iconbitmap('green_apple.ico')
+root.geometry(f'620x400')  # 窗口大小
+root.iconbitmap(bitmap='green_apple.ico')
+root.iconbitmap(default='green_apple.ico')
 root.bind('<Control-m>', subject_dir)
 root.bind('<Control-M>', subject_dir)
 
@@ -500,8 +500,8 @@ info_text.tag_config('center', foreground='green', justify='center')
 info_text.insert(END, '请选择功能\n', 'center')
 info_text.config(state=DISABLED)
 
-buttonbar1 = ttk.Frame(root)
-buttonbar1.pack(padx=0, pady=10)
+buttonbar1 = ttk.Frame(root, padding=10)
+buttonbar1.pack()
 
 btn = ttk.Button(master=buttonbar1, text='Word转长图', command=word_to_images)
 btn.pack(side=LEFT, ipadx=2, padx=10)
@@ -512,8 +512,8 @@ btn.pack(side=LEFT, ipadx=6, padx=10)
 btn = ttk.Button(master=buttonbar1, text='图片裁剪', command=cut_out_level)
 btn.pack(side=LEFT, ipadx=12, padx=10)
 
-buttonbar2 = ttk.Frame(root)
-buttonbar2.pack(padx=0, pady=10)
+buttonbar2 = ttk.Frame(root, padding=10)
+buttonbar2.pack()
 
 btn = ttk.Button(master=buttonbar2, text='制作答案', command=choice_level)
 btn.pack(side=LEFT, ipadx=12, padx=10)
