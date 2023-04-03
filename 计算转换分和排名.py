@@ -419,7 +419,7 @@ class App(ttk.Frame):
         # 创建按钮和标签
         self.template_btn = ttk.Button(master=btn_frame, text='模板维护', command=self.convert_template_level)
         self.template_btn.grid(row=1, column=0, pady=5)
-        convert_btn = ttk.Button(master=btn_frame, text='成绩赋分', command=convert_score)
+        convert_btn = ttk.Button(master=btn_frame, text='成绩赋分', command=lambda: MyThread(convert_score))
         convert_btn.grid(row=2, column=0, pady=5)
         ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=3, column=0, pady=5)
         ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=4, column=0, pady=10)
@@ -549,7 +549,7 @@ class App(ttk.Frame):
                 checkbutton_rank_group_name.append(item)
 
         # 创建按钮
-        rank_btn = ttk.Button(master=btn_frame, text='计算排名', command=rank_score)
+        rank_btn = ttk.Button(master=btn_frame, text='计算排名', command=lambda: MyThread(rank_score))
         rank_btn.grid(row=0, column=0, pady=5)
         ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=1, column=0, pady=5)
         ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=2, column=0, pady=10)
