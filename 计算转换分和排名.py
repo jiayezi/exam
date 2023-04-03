@@ -5,10 +5,9 @@
 import os
 from threading import Thread
 from tkinter import filedialog
-from ttkbootstrap.dialogs import Messagebox
 import ttkbootstrap as ttk
+from ttkbootstrap.dialogs import Messagebox
 from openpyxl import Workbook, load_workbook
-from ttkbootstrap.constants import *
 
 
 class Student:
@@ -73,30 +72,30 @@ class App(ttk.Frame):
         self.open_btn = ttk.Button(master=self.btn_frame, text='打开文档', command=self.open_file)
         self.open_btn.grid(row=1, column=0, pady=10)
         self.convert_btn = ttk.Button(master=self.btn_frame, text='成绩赋分',
-                                      command=lambda: MyThread(self.create_convert_page),
-                                      state=DISABLED)
+                                      command=self.create_convert_page,
+                                      state='disabled')
         self.convert_btn.grid(row=2, column=0, pady=10)
         self.rank_btn = ttk.Button(master=self.btn_frame, text='计算排名',
-                                   command=lambda: MyThread(self.create_rank_page),
-                                   state=DISABLED)
+                                   command=self.create_rank_page,
+                                   state='disabled')
         self.rank_btn.grid(row=3, column=0, pady=10)
         self.save_btn = ttk.Button(master=self.btn_frame, text='保存文档', command=lambda: MyThread(self.save_file),
-                                   state=DISABLED)
+                                   state='disabled')
         self.save_btn.grid(row=4, column=0, pady=10)
         self.info_text = ttk.StringVar()
         ttk.Label(master=self.btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=5, column=0, pady=10)
 
     def btn_freeze(self):
-        self.open_btn.config(state=DISABLED)
-        self.convert_btn.config(state=DISABLED)
-        self.rank_btn.config(state=DISABLED)
-        self.save_btn.config(state=DISABLED)
+        self.open_btn.config(state='disabled')
+        self.convert_btn.config(state='disabled')
+        self.rank_btn.config(state='disabled')
+        self.save_btn.config(state='disabled')
 
     def btn_unfreeze(self):
-        self.open_btn.config(state=NORMAL)
-        self.convert_btn.config(state=NORMAL)
-        self.rank_btn.config(state=NORMAL)
-        self.save_btn.config(state=NORMAL)
+        self.open_btn.config(state='normal')
+        self.convert_btn.config(state='normal')
+        self.rank_btn.config(state='normal')
+        self.save_btn.config(state='normal')
 
     def convert_template_level(self):
         """维护赋分模板的顶层窗口"""
@@ -107,12 +106,12 @@ class App(ttk.Frame):
             for row_obj in et_obj:
                 for col, et in enumerate(row_obj):
                     if col > 0 and not check(et):
-                        Messagebox.show_info(message='存在不是数字的值，保存失败')
+                        Messagebox.show_info(parent=top, message='存在不合理的数据，保存失败')
                         return
                     if col == 3:
                         total += float(et.get())
             if total != 100:
-                Messagebox.show_info(message='占比之和不等于100，保存失败')
+                Messagebox.show_info(parent=top, message='占比之和不等于100，保存失败')
                 return
 
             with open(f'conf/{file_name}', 'wt', encoding='utf8') as f:
@@ -121,11 +120,11 @@ class App(ttk.Frame):
                     values = [et.get() for et in row_obj]
                     text += '\t'.join(values)+'\n'
                 f.write(text[:-1])
-            Messagebox.show_info(message='保存成功')
+            Messagebox.show_info(parent=top, message='保存成功')
 
         def del_template(file_name):
             """删除模板文件"""
-            r = Messagebox.yesno(message='确定删除？')
+            r = Messagebox.yesno(parent=top, message='确定删除？')
             if r == '确认':
                 os.remove(f'conf/{file_name}')
                 top.destroy()
@@ -160,10 +159,8 @@ class App(ttk.Frame):
                 if num > 0:
                     return True
                 else:
-                    Messagebox.show_warning(message='请输入大于0的数字！')
                     return False
             except ValueError:
-                Messagebox.show_warning(message='请输入数字！')
                 return False
 
         def go_to_top():
@@ -174,7 +171,7 @@ class App(ttk.Frame):
         def close_top_level():
             """关闭顶层窗口并恢复按钮状态"""
             top.destroy()
-            self.template_btn.config(state=NORMAL)
+            self.template_btn.config(state='normal')
 
         def modify_template(template_name):
             """读取指定文件，创建输入控件，把文件内容添加到输入框"""
@@ -205,7 +202,7 @@ class App(ttk.Frame):
                     else:
                         et = ttk.Entry(et_frame, width=3)
                     et.grid(row=row_index+1, column=col_index, padx=10, pady=5)
-                    et.insert(END, value)
+                    et.insert('end', value)
                     row_obj.append(et)
                 et_obj.append(row_obj)
 
@@ -222,7 +219,7 @@ class App(ttk.Frame):
             list_frame.grid_forget()
             modify_frame.grid(sticky='n')
 
-        self.template_btn.config(state=DISABLED)
+        self.template_btn.config(state='disabled')
 
         top = ttk.Toplevel()
         top.title('赋分模板维护')
@@ -238,16 +235,13 @@ class App(ttk.Frame):
 
         # 读取指定目录里的所有文件，创建标签和按钮
         template_list = os.listdir('conf')
+        template_list.remove('新模板')
         for i, template in enumerate(template_list):
-            if template == new_template:
-                continue
             ttk.Label(master=list_frame, text=template, font=('黑体', 12)).grid(row=i+1, column=0, padx=5, pady=5)
             ttk.Button(master=list_frame, text='修改', command=lambda t=template: modify_template(t), bootstyle='outline').grid(row=i+1, column=1, padx=5, pady=5)
             ttk.Button(master=list_frame, text='删除', command=lambda t=template: del_template(t), bootstyle='outline').grid(row=i + 1, column=2, padx=5,  pady=5)
-        ttk.Button(master=list_frame, text='添加', command=lambda: modify_template(new_template),
-                   bootstyle='outline').grid(row=len(template_list)+1, column=1, padx=5, pady=5)
-        ttk.Button(master=list_frame, text='关闭', command=close_top_level, bootstyle='outline').grid(row=len(template_list)+1, column=2,
-                                                                                                      padx=5, pady=5)
+        ttk.Button(master=list_frame, text='添加', command=lambda: modify_template(new_template), bootstyle='outline').grid(row=len(template_list)+1, column=1, padx=5, pady=5)
+        ttk.Button(master=list_frame, text='关闭', command=close_top_level, bootstyle='outline').grid(row=len(template_list)+1, column=2, padx=5, pady=5)
 
         top.mainloop()
 
@@ -258,7 +252,7 @@ class App(ttk.Frame):
         if not path:
             return
 
-        self.open_btn.config(state=DISABLED)
+        self.open_btn.config(state='disabled')
         self.info_text.set('正在读取数据')
 
         wb = load_workbook(path, read_only=True)
@@ -285,7 +279,7 @@ class App(ttk.Frame):
 
         def convert_score():
             """计算转换分"""
-            convert_btn.config(state=DISABLED)
+            convert_btn.config(state='disabled')
             self.btn_freeze()
             self.info_text.set('正在计算转换分')
 
@@ -303,7 +297,7 @@ class App(ttk.Frame):
             rate_exceed = []
             rate_dist = []
             grade_dict = {}
-            with open(f'conf/{cb.get()}', 'rt', encoding='utf8') as f:
+            with open(f'conf/{cbox.get()}', 'rt', encoding='utf8') as f:
                 data = f.read()
             row_list = data.split('\n')
             rate_sum = 0
@@ -388,7 +382,7 @@ class App(ttk.Frame):
                 self.title.append(f'{subject}等级')
 
             self.info_text.set('转换分计算完成')
-            convert_btn.config(state=NORMAL)
+            convert_btn.config(state='normal')
             self.btn_unfreeze()
 
         convert_page = ttk.Frame(master=app, padding=20)
@@ -399,9 +393,9 @@ class App(ttk.Frame):
         ttk.Label(master=item_frame, text='赋分科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
         template_files = os.listdir('conf')
         template_files.remove('新模板')
-        cb = ttk.Combobox(master=btn_frame, values=template_files, width=14)
-        cb.grid(row=0, column=0, pady=(0, 10))
-        cb.current(0)
+        cbox = ttk.Combobox(master=btn_frame, values=template_files, width=14)
+        cbox.grid(row=0, column=0, pady=(0, 10))
+        cbox.current(0)
 
         # 创建复选框
         select_all_var = ttk.StringVar()
@@ -442,7 +436,7 @@ class App(ttk.Frame):
 
         def rank_score():
             """计算排名"""
-            rank_btn.config(state=DISABLED)
+            rank_btn.config(state='disabled')
             self.btn_freeze()
             self.info_text.set('正在计算排名')
 
@@ -502,7 +496,7 @@ class App(ttk.Frame):
                 self.title.append(f'{subject}{group_title}排名')
 
             self.info_text.set('排名计算完成')
-            rank_btn.config(state=NORMAL)
+            rank_btn.config(state='normal')
             self.btn_unfreeze()
 
         rank_page = ttk.Frame(master=app, padding=20)

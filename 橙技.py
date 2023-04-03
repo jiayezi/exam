@@ -3,10 +3,10 @@
 版本：1.3
 """
 import os
-from tkinter import messagebox, simpledialog, filedialog  # 消息框，对话框，文件访问对话框
+from tkinter import filedialog  # 文件访问对话框
+from ttkbootstrap.dialogs import Messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.toast import ToastNotification
-from ttkbootstrap.constants import *
 from re import search
 from openpyxl import Workbook
 from win32com import client
@@ -14,15 +14,15 @@ from win32com import client
 
 def unfreeze():
     """释放文本框，清空文本框"""
-    info_text.config(state=NORMAL)
-    output_text.delete(1.0, END)  # 删除文本框里的内容
-    info_text.delete(1.0, END)
+    info_text.config(state='normal')
+    output_text.delete(1.0, 'end')  # 删除文本框里的内容
+    info_text.delete(1.0, 'end')
 
 
 def heading():
     """提取数字"""
     unfreeze()
-    data = input_text.get(1.0, END)
+    data = input_text.get(1.0, 'end')
     data = data.strip()
     if data:
         data_list = data.split('\n')
@@ -46,7 +46,7 @@ def difficulty_level():
     unfreeze()
     counter = 0
 
-    data = input_text.get(1.0, END)
+    data = input_text.get(1.0, 'end')
     data = data.strip()
 
     if data:
@@ -73,7 +73,7 @@ def difficulty_level():
 def single_choice():
     """提取字符串里的A、B、C、D、E、F、G"""
     unfreeze()
-    data = input_text.get(1.0, END)  # 获取文本框里的数据
+    data = input_text.get(1.0, 'end')  # 获取文本框里的数据
     data = data.strip()
     if data:
         counter = 0
@@ -90,7 +90,7 @@ def single_choice():
 
 def skill_requirements():
     """把符号替换成该列对应的文字"""
-    data = input_text.get(1.0, END)
+    data = input_text.get(1.0, 'end')
     data = data.strip()
     if not data:
         return
@@ -123,7 +123,7 @@ def OMR():
     """删除制表符，把长度不是1的字符串替换成."""
     unfreeze()
 
-    data = input_text.get(1.0, END)
+    data = input_text.get(1.0, 'end')
     data = data.strip().replace(' ', '.')
     data_list = data.split('\n')
 
@@ -147,7 +147,7 @@ def multiple_OMR():
     """合并不定向选择答案"""
     unfreeze()
 
-    data = input_text.get(1.0, END)
+    data = input_text.get(1.0, 'end')
     data = data.strip().replace(' ', '.')
     data_list = data.split('\n')
 
@@ -197,9 +197,9 @@ def format_table():
     ws.Cells(max_row + 2, 3).Value = f'=MAX(C2:C{max_row})'
 
     if ws.Cells(max_row + 1, 3).Value == ws.Cells(max_row + 2, 3).Value:
-        info_text.insert(END, f'选择题答案数量一样\n', 'center')
+        info_text.insert('end', f'选择题答案数量一样\n', 'center')
     else:
-        info_text.insert(END, '选择题答案数量不一样，请检查这个科目是否有多选题 Σ(ŎдŎ|||)ﾉﾉ\n', 'center')
+        info_text.insert('end', '选择题答案数量不一样，请检查这个科目是否有多选题 Σ(ŎдŎ|||)ﾉﾉ\n', 'center')
     ws.Cells(max_row + 1, 3).Value = None
     ws.Cells(max_row + 2, 3).Value = None
     ws.Columns(3).Delete()
@@ -212,7 +212,7 @@ def format_table():
         col_name = ws.Cells(max_row + 1, col).Value
         # 计算最大值
         ws.Cells(max_row + 2, col).Value = f'=MAX({col_name}2:{col_name}{max_row})'
-        output_text.insert(END, f'{ws.Cells(max_row + 2, col).Value}\n')
+        output_text.insert('end', f'{ws.Cells(max_row + 2, col).Value}\n')
     info_text.insert('end', '题目最高分查找完成\n', 'center')
     # 删除2行临时数据
     ws.Rows(max_row + 1).Delete()
@@ -238,7 +238,7 @@ def format_table():
     wb.Close(SaveChanges=1)  # 保存并关闭
     excel.Quit()
 
-    info_text.insert(END, '小分表修改完成\n', 'center')
+    info_text.insert('end', '小分表修改完成\n', 'center')
     info_text.yview_moveto(1)
     output_text.focus()
 
@@ -251,7 +251,7 @@ def total_score_level():
     counter = 0
 
     def add_score_data():
-        data = text0.get(1.0, END)
+        data = text0.get(1.0, 'end')
         if not data.strip():
             return
         unfreeze()
@@ -262,7 +262,7 @@ def total_score_level():
         ToastNotification(title='信息', message=f'已提交 {counter} 个科目成绩', duration=3000, position=(0, 220, 's'))\
             .show_toast()
         freeze()
-        text0.delete(1.0, END)
+        text0.delete(1.0, 'end')
         text0.focus()
 
     def calculate_total_score():
@@ -292,11 +292,11 @@ def total_score_level():
                         student_dict[student_id] = [0.0 for _ in range(index + 1)]
                     student_dict[student_id][index] = score
             except IndexError:
-                info_text.insert(END, '数据不完整，处理失败，请同时提交考号和成绩 (ー_ー)!!\n', 'center')
+                info_text.insert('end', '数据不完整，处理失败，请同时提交考号和成绩 (ー_ー)!!\n', 'center')
                 top.destroy()
                 return
             except ValueError:
-                info_text.insert(END, '成绩字段不是纯数字，处理失败 (ー_ー)!!\n', 'center')
+                info_text.insert('end', '成绩字段不是纯数字，处理失败 (ー_ー)!!\n', 'center')
                 top.destroy()
                 return
             # 把所有学生的下一个科目的分数初始化为0分
@@ -329,7 +329,7 @@ def total_score_level():
                                                  defaultextension='.xlsx')
         if file_path:
             wb.save(file_path)
-            info_text.insert(END, '文件保存成功\n', 'center')
+            info_text.insert('end', '文件保存成功\n', 'center')
             wb.close()
         top.destroy()
         freeze()
@@ -345,10 +345,10 @@ def total_score_level():
     text0.focus()
     buttonbar = ttk.Frame(top, padding=20)
     buttonbar.pack()
-    btn = ttk.Button(master=buttonbar, text='提交分数', compound=CENTER, command=add_score_data)
-    btn.pack(side=LEFT, padx=10, ipadx=8)
-    btn = ttk.Button(master=buttonbar, text='计算总分', compound=CENTER, command=calculate_total_score)
-    btn.pack(side=LEFT, padx=10, ipadx=8)
+    btn = ttk.Button(master=buttonbar, text='提交分数', command=add_score_data)
+    btn.pack(side='left', padx=10, ipadx=8)
+    btn = ttk.Button(master=buttonbar, text='计算总分', command=calculate_total_score)
+    btn.pack(side='left', padx=10, ipadx=8)
 
     top.mainloop()
 
@@ -356,14 +356,14 @@ def total_score_level():
 def split_score_level():
     """按小题的分数拆分总分"""
     def split_score():
-        data = left_text.get(1.0, END).strip()
-        small_data = mid_text.get(1.0, END).strip()
+        data = left_text.get(1.0, 'end').strip()
+        small_data = mid_text.get(1.0, 'end').strip()
         if not (data and small_data):
             return
-        right_text.delete(1.0, END)
+        right_text.delete(1.0, 'end')
         total_score_list = data.split('\n')
         small_score_list = small_data.split('\n')
-        right_text.config(state=NORMAL)
+        right_text.config(state='normal')
         text = ''
         try:
             for total_score in total_score_list:
@@ -381,7 +381,7 @@ def split_score_level():
             ToastNotification(title='信息', message='总分或题目分不是纯数字，拆分失败 (ー_ー)!!', duration=3000,
                               position=(0, 220, 's')).show_toast()
         else:
-            right_text.insert(END, text[:-1])
+            right_text.insert('end', text[:-1])
             ToastNotification(title='信息', message='拆分完毕', duration=3000, position=(0, 220, 's')).show_toast()
             right_text.focus()
 
@@ -403,7 +403,7 @@ def split_score_level():
     left_text.grid(row=1, column=0, padx=(20, 10))
     mid_text = ttk.Text(top, width=5, height=25)
     mid_text.grid(row=1, column=1, padx=10)
-    right_text = ttk.Text(top, width=90, height=25, state=DISABLED)
+    right_text = ttk.Text(top, width=90, height=25, state='disabled')
     right_text.grid(row=1, column=2, padx=(10, 20))
 
     btn = ttk.Button(master=top, text='计算', command=split_score)
@@ -414,7 +414,7 @@ def split_score_level():
 
 def freeze():
     """改变文本颜色，禁用文本框"""
-    info_text.config(state=DISABLED)
+    info_text.config(state='disabled')
     info_text.yview_moveto(1)  # 滚动到文本末尾
 
 
@@ -428,7 +428,7 @@ def show_message():
 
     text0 = ttk.Text(top, width=100, height=20, spacing2=10, spacing3=15)
     text0.pack()
-    text0.insert(END, '题目：每行提取一个最多两位的数字\n'
+    text0.insert('end', '题目：每行提取一个最多两位的数字\n'
                       '难度值：把数字放大100倍\n'
                       '单选答案：从文子里提取A-G的大写字母\n'
                       '能力要求：把文字里的“√”替换成第一行对应的能力要求\n'
@@ -438,15 +438,15 @@ def show_message():
                       '总分：输入考号和单科成绩，生成总分表\n'
                       '拆分：按照小题分数把每个学生的总分拆分成小分\n')
 
-    text0.tag_add('forever', 1.0, END)
+    text0.tag_add('forever', 1.0, 'end')
     text0.tag_config('forever', foreground='green', font=('黑体', 12))
-    text0.config(state=DISABLED)
+    text0.config(state='disabled')
 
     top.mainloop()
 
 
 def about():
-    messagebox.showinfo(title='关于', message='橙技 1.0\n')
+    Messagebox.show_info(title='关于', message='橙技 1.0\n')
 
 
 def paste_from_clipboard(event):
@@ -459,13 +459,14 @@ def copy_to_clipboard(event):
     root.clipboard_clear()
     root.clipboard_append(selected_text)
 
-    info_text.config(state=NORMAL)
-    info_text.insert(END, '已复制到剪贴板\n', 'center')
+    info_text.config(state='normal')
+    info_text.insert('end', '已复制到剪贴板\n', 'center')
     freeze()
 
 
 def close_handle():
-    if messagebox.askyesno(title='退出确认', message='确定要退出吗？'):
+    r = Messagebox.yesno(title='退出确认', message='确定要退出吗？')
+    if r == '确认':
         root.destroy()
 
 
@@ -490,7 +491,7 @@ label1 = ttk.Label(root, text='原始数据', font=('黑体', 12))
 label1.pack(pady=(20, 10))  # 按布局方式放置标签
 
 input_text = ttk.Text(root, height=12)
-input_text.pack(fill=X, padx=100)  # 文本框宽度沿水平方向自适应填充，左右两边空100像素
+input_text.pack(fill='x', padx=100)  # 文本框宽度沿水平方向自适应填充，左右两边空100像素
 input_text.focus()
 input_text.bind("<Button-3>", paste_from_clipboard)
 
@@ -498,12 +499,12 @@ label2 = ttk.Label(root, text='计算结果', font=('黑体', 12))
 label2.pack(pady=(20, 10))
 
 output_text = ttk.Text(root, height=12)
-output_text.pack(fill=X, padx=100)
+output_text.pack(fill='x', padx=100)
 # 为文本框绑定鼠标双击事件
 output_text.bind("<Double-Button-1>", copy_to_clipboard)
 
-info_text = ttk.Text(root, height=5, font=('黑体', 12), spacing3=8, border=-1, state=DISABLED)
-info_text.pack(pady=10, padx=100, fill=X)
+info_text = ttk.Text(root, height=5, font=('黑体', 12), spacing3=8, border=-1, state='disabled')
+info_text.pack(pady=10, padx=100, fill='x')
 info_text.tag_config('center', foreground='green', justify='center')
 
 # 按钮区域
@@ -511,30 +512,30 @@ buttonbar = ttk.Labelframe(root, text='选择功能', labelanchor='n', padding=2
 buttonbar.pack(pady=10,  padx=100)
 
 btn = ttk.Button(master=buttonbar, text='题目', command=heading)
-btn.pack(side=LEFT, padx=12)
+btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='难度值', command=difficulty_level)
-btn.pack(side=LEFT, padx=12)
+btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='单选答案', command=single_choice)
-btn.pack(side=LEFT, padx=12)
+btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='能力要求', command=skill_requirements)
-btn.pack(side=LEFT, padx=12)
+btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='OMR', command=OMR)
-btn.pack(side=LEFT, padx=12)
+btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='多选OMR', command=multiple_OMR)
-btn.pack(side=LEFT, padx=12)
+btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='小分表', command=format_table)
-btn.pack(side=LEFT, padx=12)
+btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='总分表', command=total_score_level)
-btn.pack(side=LEFT, padx=12)
+btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='拆分', command=split_score_level)
-btn.pack(side=LEFT, padx=12)
+btn.pack(side='left', padx=12)
 
 root.mainloop()
