@@ -336,21 +336,19 @@ def total_score_level():
 
     top = ttk.Toplevel()
     top.title('计算总分')
-    top.geometry(f'800x600')  # 窗口大小
-    top.iconbitmap('green_apple.ico')
     top.place_window_center()
 
     lb = ttk.Label(top, text='考号和单科成绩：', font=('微软雅黑', 12))
-    lb.pack(pady=10)
+    lb.pack(padx=20, pady=10)
     text0 = ttk.Text(top, width=100, height=25)
-    text0.pack()
+    text0.pack(padx=20)
     text0.focus()
-    buttonbar = ttk.Frame(top)
-    buttonbar.pack(padx=0, pady=10)
+    buttonbar = ttk.Frame(top, padding=20)
+    buttonbar.pack()
     btn = ttk.Button(master=buttonbar, text='提交分数', compound=CENTER, command=add_score_data)
-    btn.pack(side=LEFT, ipadx=10, padx=10, pady=10)
+    btn.pack(side=LEFT, padx=10, ipadx=8)
     btn = ttk.Button(master=buttonbar, text='计算总分', compound=CENTER, command=calculate_total_score)
-    btn.pack(side=LEFT, ipadx=10, padx=10, pady=10)
+    btn.pack(side=LEFT, padx=10, ipadx=8)
 
     top.mainloop()
 
@@ -389,28 +387,27 @@ def split_score_level():
 
     top = ttk.Toplevel()
     top.title('拆分')
-    top.geometry(f'800x600')  # 窗口大小
     top.iconbitmap('green_apple.ico')
     top.place_window_center()
 
     top.place_window_center()
 
     lb1 = ttk.Label(top, text='总分', font=('微软雅黑', 12))
-    lb1.grid(row=0, column=0, pady=10)
+    lb1.grid(row=0, column=0, padx=10, pady=10)
     lb2 = ttk.Label(top, text='小题满分', font=('微软雅黑', 12))
-    lb2.grid(row=0, column=1, pady=10)
+    lb2.grid(row=0, column=1, padx=10, pady=10)
     lb3 = ttk.Label(top, text='小分', font=('微软雅黑', 12))
-    lb3.grid(row=0, column=2, pady=10)
+    lb3.grid(row=0, column=2, padx=10, pady=10)
 
     left_text = ttk.Text(top, width=5, height=25)
-    left_text.grid(row=1, column=0, padx=10)
+    left_text.grid(row=1, column=0, padx=(20, 10))
     mid_text = ttk.Text(top, width=5, height=25)
     mid_text.grid(row=1, column=1, padx=10)
     right_text = ttk.Text(top, width=90, height=25, state=DISABLED)
-    right_text.grid(row=1, column=2, padx=10)
+    right_text.grid(row=1, column=2, padx=(10, 20))
 
     btn = ttk.Button(master=top, text='计算', command=split_score)
-    btn.grid(row=2, column=0, ipadx=10, pady=30, columnspan=3)
+    btn.grid(row=2, column=0, ipadx=10, pady=20, columnspan=3)
 
     top.mainloop()
 
@@ -452,13 +449,16 @@ def about():
     messagebox.showinfo(title='关于', message='橙技 1.0\n')
 
 
-def select_all(event):
-    info_text.config(state=NORMAL)
-    info_text.insert(END, '选中全部\n', 'center')
-    freeze()
+def paste_from_clipboard(event):
+    clipboard_text = root.clipboard_get()
+    input_text.insert('end', clipboard_text)
 
 
-def cp_msg(event):
+def copy_to_clipboard(event):
+    selected_text = output_text.get(1.0, 'end')
+    root.clipboard_clear()
+    root.clipboard_append(selected_text)
+
     info_text.config(state=NORMAL)
     info_text.insert(END, '已复制到剪贴板\n', 'center')
     freeze()
@@ -471,9 +471,9 @@ def close_handle():
 
 # 窗口
 root = ttk.Window(themename='cerculean', title='橙技')
-root.geometry(f'1080x800')  # 窗口大小
-root.minsize(1000, 750)
-root.iconbitmap('green_apple.ico')
+root.geometry(f'1080x820')  # 窗口大小
+root.iconbitmap(bitmap='green_apple.ico')
+root.iconbitmap(default='green_apple.ico')
 
 # 菜单
 main_menu = ttk.Menu(root)
@@ -487,57 +487,54 @@ root.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，�
 root.place_window_center()
 
 label1 = ttk.Label(root, text='原始数据', font=('黑体', 12))
-label1.pack(pady=10)  # 按布局方式放置标签
+label1.pack(pady=(20, 10))  # 按布局方式放置标签
 
 input_text = ttk.Text(root, height=12)
 input_text.pack(fill=X, padx=100)  # 文本框宽度沿水平方向自适应填充，左右两边空100像素
 input_text.focus()
+input_text.bind("<Button-3>", paste_from_clipboard)
 
 label2 = ttk.Label(root, text='计算结果', font=('黑体', 12))
-label2.pack(pady=10)
+label2.pack(pady=(20, 10))
 
 output_text = ttk.Text(root, height=12)
 output_text.pack(fill=X, padx=100)
-output_text.bind('<Control-a>', select_all)  # 绑定事件
-output_text.bind('<Control-A>', select_all)
-output_text.bind('<Control-c>', cp_msg)
-output_text.bind('<Control-C>', cp_msg)
-output_text.bind('<Control-x>', cp_msg)
-output_text.bind('<Control-X>', cp_msg)
+# 为文本框绑定鼠标双击事件
+output_text.bind("<Double-Button-1>", copy_to_clipboard)
 
-info_text = ttk.Text(root, height=6, font=('黑体', 12), spacing3=8, border=-1, state=DISABLED)
+info_text = ttk.Text(root, height=5, font=('黑体', 12), spacing3=8, border=-1, state=DISABLED)
 info_text.pack(pady=10, padx=100, fill=X)
 info_text.tag_config('center', foreground='green', justify='center')
 
 # 按钮区域
-buttonbar = ttk.Labelframe(root, text='选择功能', labelanchor='n')
-buttonbar.pack(pady=0,  padx=100, ipady=20)
+buttonbar = ttk.Labelframe(root, text='选择功能', labelanchor='n', padding=20)
+buttonbar.pack(pady=10,  padx=100)
 
 btn = ttk.Button(master=buttonbar, text='题目', command=heading)
-btn.pack(side=LEFT, padx=20)
+btn.pack(side=LEFT, padx=12)
 
 btn = ttk.Button(master=buttonbar, text='难度值', command=difficulty_level)
-btn.pack(side=LEFT, padx=20)
+btn.pack(side=LEFT, padx=12)
 
 btn = ttk.Button(master=buttonbar, text='单选答案', command=single_choice)
-btn.pack(side=LEFT, padx=18)
+btn.pack(side=LEFT, padx=12)
 
 btn = ttk.Button(master=buttonbar, text='能力要求', command=skill_requirements)
-btn.pack(side=LEFT, padx=15)
+btn.pack(side=LEFT, padx=12)
 
 btn = ttk.Button(master=buttonbar, text='OMR', command=OMR)
-btn.pack(side=LEFT, padx=15)
+btn.pack(side=LEFT, padx=12)
 
 btn = ttk.Button(master=buttonbar, text='多选OMR', command=multiple_OMR)
-btn.pack(side=LEFT, padx=15)
+btn.pack(side=LEFT, padx=12)
 
 btn = ttk.Button(master=buttonbar, text='小分表', command=format_table)
-btn.pack(side=LEFT, padx=18)
+btn.pack(side=LEFT, padx=12)
 
 btn = ttk.Button(master=buttonbar, text='总分表', command=total_score_level)
-btn.pack(side=LEFT, padx=20)
+btn.pack(side=LEFT, padx=12)
 
 btn = ttk.Button(master=buttonbar, text='拆分', command=split_score_level)
-btn.pack(side=LEFT, padx=20)
+btn.pack(side=LEFT, padx=12)
 
 root.mainloop()
