@@ -4,8 +4,8 @@
 """
 import os
 from threading import Thread
-from tkinter import filedialog, messagebox
-
+from tkinter import filedialog
+from ttkbootstrap.dialogs import Messagebox
 import ttkbootstrap as ttk
 from openpyxl import Workbook, load_workbook
 from ttkbootstrap.constants import *
@@ -49,7 +49,8 @@ def select_all1(select_all_var, checkbutton_var, checkbutton_name):
 
 
 def close_handle():
-    if messagebox.askyesno(message='确定要退出吗？'):
+    r = Messagebox.yesno(message='确定要退出吗？')
+    if r == '确认':
         app.destroy()
 
 
@@ -106,12 +107,12 @@ class App(ttk.Frame):
             for row_obj in et_obj:
                 for col, et in enumerate(row_obj):
                     if col > 0 and not check(et):
-                        messagebox.showinfo(message='存在不是数字的值，保存失败')
+                        Messagebox.show_info(message='存在不是数字的值，保存失败')
                         return
                     if col == 3:
                         total += float(et.get())
             if total != 100:
-                messagebox.showinfo(message='占比之和不等于100，保存失败')
+                Messagebox.show_info(message='占比之和不等于100，保存失败')
                 return
 
             with open(f'conf/{file_name}', 'wt', encoding='utf8') as f:
@@ -120,14 +121,15 @@ class App(ttk.Frame):
                     values = [et.get() for et in row_obj]
                     text += '\t'.join(values)+'\n'
                 f.write(text[:-1])
-            messagebox.showinfo(message='保存成功')
+            Messagebox.show_info(message='保存成功')
 
         def del_template(file_name):
             """删除模板文件"""
-            if messagebox.askyesno(message='确定删除？'):
+            r = Messagebox.yesno(message='确定删除？')
+            if r == '确认':
                 os.remove(f'conf/{file_name}')
                 top.destroy()
-                messagebox.showinfo(message='模板已删除')
+                Messagebox.show_info(message='模板已删除')
                 # 重启顶层窗口，达到刷新页面的目的
                 self.convert_template_level()
 
@@ -158,10 +160,10 @@ class App(ttk.Frame):
                 if num > 0:
                     return True
                 else:
-                    messagebox.showwarning(message='请输入大于0的数字！')
+                    Messagebox.show_warning(message='请输入大于0的数字！')
                     return False
             except ValueError:
-                messagebox.showwarning(message='请输入数字！')
+                Messagebox.show_warning(message='请输入数字！')
                 return False
 
         def go_to_top():
@@ -243,8 +245,8 @@ class App(ttk.Frame):
             ttk.Button(master=list_frame, text='修改', command=lambda t=template: modify_template(t), bootstyle='outline').grid(row=i+1, column=1, padx=5, pady=5)
             ttk.Button(master=list_frame, text='删除', command=lambda t=template: del_template(t), bootstyle='outline').grid(row=i + 1, column=2, padx=5,  pady=5)
         ttk.Button(master=list_frame, text='添加', command=lambda: modify_template(new_template),
-                   bootstyle='outline').grid(row=len(template_list), column=1, padx=5, pady=5)
-        ttk.Button(master=list_frame, text='关闭', command=close_top_level, bootstyle='outline').grid(row=len(template_list), column=2,
+                   bootstyle='outline').grid(row=len(template_list)+1, column=1, padx=5, pady=5)
+        ttk.Button(master=list_frame, text='关闭', command=close_top_level, bootstyle='outline').grid(row=len(template_list)+1, column=2,
                                                                                                       padx=5, pady=5)
 
         top.mainloop()
