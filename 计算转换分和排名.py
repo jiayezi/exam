@@ -393,7 +393,7 @@ class App(ttk.Frame):
         ttk.Label(master=item_frame, text='赋分科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
         template_files = os.listdir('conf')
         template_files.remove('新模板')
-        cbox = ttk.Combobox(master=btn_frame, values=template_files, width=14)
+        cbox = ttk.Combobox(master=btn_frame, values=template_files, state='readonly', width=14)
         cbox.grid(row=0, column=0, pady=(0, 10))
         cbox.current(0)
 
