@@ -416,6 +416,7 @@ def freeze():
     """改变文本颜色，禁用文本框"""
     info_text.config(state='disabled')
     info_text.yview_moveto(1)  # 滚动到文本末尾
+    input_text.delete(1.0, 'end')
 
 
 def show_message():
@@ -493,7 +494,7 @@ label1.pack(pady=(20, 10))  # 按布局方式放置标签
 input_text = ttk.Text(root, height=12)
 input_text.pack(fill='x', padx=100)  # 文本框宽度沿水平方向自适应填充，左右两边空100像素
 input_text.focus()
-input_text.bind("<Button-3>", paste_from_clipboard)
+input_text.bind("<Double-Button-1>", paste_from_clipboard)
 
 label2 = ttk.Label(root, text='计算结果', font=('黑体', 12))
 label2.pack(pady=(20, 10))
