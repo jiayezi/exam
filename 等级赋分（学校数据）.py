@@ -9,7 +9,7 @@
 from tkinter import filedialog
 from openpyxl import load_workbook, Workbook
 
-extra = 10  # 前9列数据用不上
+extra = 8  # 前9列数据用不上
 
 # 读取Excel文件
 file_path = filedialog.askopenfilename(title='请选择Excel文件', initialdir='F:/用户目录/桌面/',
@@ -33,7 +33,7 @@ dict_dj = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E'}
 
 def sort_rule(score):
     """定义排序规则"""
-    if score is None or score == '':
+    if score is None or score == '' or score == '缺扫':
         return 0
     else:
         return float(score)
@@ -44,7 +44,7 @@ def getp1(data, index, score):
     count = 0
     for row in data:
         current_str = row[index]
-        if current_str is None or current_str == '':
+        if current_str is None or current_str == '' or current_str == '缺扫':
             continue
         current_number = float(current_str)
         if score > current_number > 0:
@@ -60,7 +60,7 @@ for sub_index, subject in enumerate(subjects):
     student_num = len(student_data)
     min_score = 0.0
     for w_index, row in enumerate(student_data_reverse):
-        if row[extra + sub_index] is None or row[extra + sub_index] == '':
+        if row[extra + sub_index] is None or row[extra + sub_index] == '' or row[extra + sub_index] == '缺扫':
             continue
         if float(row[extra + sub_index]) > 0.0:
             student_num -= w_index
@@ -74,7 +74,7 @@ for sub_index, subject in enumerate(subjects):
     rate = (student_num - 1) / student_num
     for row_index, row in enumerate(student_data):
         current_score_str = row[extra + sub_index]
-        if (current_score_str is None or current_score_str == '') and row_index != 0:
+        if (current_score_str is None or current_score_str == '' or current_score_str == '缺扫') and row_index != 0:
             continue
 
         current_score = float(row[extra + sub_index])
@@ -104,7 +104,7 @@ for sub_index, subject in enumerate(subjects):
     rank = 0  # 当前排名
     for r_index, row in enumerate(student_data):
         score_str = row[extra + sub_index]
-        if score_str is None or score_str == '' or float(score_str) < 0.001:
+        if score_str is None or score_str == '' or score_str == '缺扫' or float(score_str) < 0.001:
             row.append('')
             row.append('')
             row.append('')
@@ -121,7 +121,10 @@ for sub_index, subject in enumerate(subjects):
         n = rateS[xsdj][0]
         a = rateY[xsdj][1]
         b = rateY[xsdj][0]
-        converts = (b * (score - m) + a * (n - score)) / (n - m)
+        if m == n:
+            converts = (a+b)/2
+        else:
+            converts = (b * (score - m) + a * (n - score)) / (n - m)
         converts = round(converts)
         # print(f'等级：{xsdj}\tm：{m}\tn：{n}\ta：{a}\tb：{b}\t原始分：{score:.1f}\t转换分：{converts}')
         row.append(converts)

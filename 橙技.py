@@ -219,7 +219,7 @@ def format_table():
     ws.Rows(max_row + 1).Delete()
 
     # 设置表格为文本格式
-    # ws.Cells.NumberFormatLocal = "@"
+    ws.Cells.NumberFormatLocal = "@"
 
     # 插入单行单列
     range_obj = ws.Range('A1')
