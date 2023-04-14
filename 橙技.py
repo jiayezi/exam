@@ -3,6 +3,7 @@
 版本：1.3
 """
 import os
+import threading
 from tkinter import filedialog  # 文件访问对话框
 from ttkbootstrap.dialogs import Messagebox
 import ttkbootstrap as ttk
@@ -10,6 +11,16 @@ from ttkbootstrap.toast import ToastNotification
 from re import search
 from openpyxl import Workbook
 from win32com import client
+
+
+def thread_it(func, *args):
+    """将函数打包进线程"""
+    # 创建
+    t = threading.Thread(target=func, args=args)
+    # 守护
+    t.setDaemon(True)
+    # 启动
+    t.start()
 
 
 def unfreeze():
@@ -347,7 +358,7 @@ def total_score_level():
     buttonbar.pack()
     btn = ttk.Button(master=buttonbar, text='提交分数', command=add_score_data)
     btn.pack(side='left', padx=10, ipadx=8)
-    btn = ttk.Button(master=buttonbar, text='计算总分', command=calculate_total_score)
+    btn = ttk.Button(master=buttonbar, text='计算总分', command=lambda: thread_it(calculate_total_score))
     btn.pack(side='left', padx=10, ipadx=8)
 
     top.mainloop()
@@ -530,7 +541,7 @@ btn.pack(side='left', padx=12)
 btn = ttk.Button(master=buttonbar, text='多选OMR', command=multiple_OMR)
 btn.pack(side='left', padx=12)
 
-btn = ttk.Button(master=buttonbar, text='小分表', command=format_table)
+btn = ttk.Button(master=buttonbar, text='小分表', command=lambda: thread_it(format_table))
 btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='总分表', command=total_score_level)

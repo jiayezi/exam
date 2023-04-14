@@ -1,5 +1,6 @@
 import os
 import shutil
+import threading
 from tkinter import filedialog  # 文件访问对话框
 import fitz  # pymupdf库，操作PDF文件，可转换成图片
 import ttkbootstrap as ttk
@@ -8,6 +9,16 @@ from PIL import Image
 from PIL import UnidentifiedImageError
 from openpyxl import load_workbook
 from win32com import client  # 操作office文档，转换格式
+
+
+def thread_it(func, *args):
+    """将函数打包进线程"""
+    # 创建
+    t = threading.Thread(target=func, args=args)
+    # 守护
+    t.setDaemon(True)
+    # 启动
+    t.start()
 
 
 def unfreeze():
@@ -501,13 +512,13 @@ info_text.config(state='disabled')
 buttonbar1 = ttk.Frame(root, padding=10)
 buttonbar1.pack()
 
-btn = ttk.Button(master=buttonbar1, text='Word转长图', command=word_to_images)
+btn = ttk.Button(master=buttonbar1, text='Word转长图', command=lambda: thread_it(word_to_images))
 btn.pack(side='left', ipadx=2, padx=10)
 
-btn = ttk.Button(master=buttonbar1, text='PDF转长图', command=pdf_to_images)
+btn = ttk.Button(master=buttonbar1, text='PDF转长图', command=lambda: thread_it(pdf_to_images))
 btn.pack(side='left', ipadx=6, padx=10)
 
-btn = ttk.Button(master=buttonbar1, text='图片裁剪', command=cut_out_level)
+btn = ttk.Button(master=buttonbar1, text='图片裁剪', command=lambda: thread_it(cut_out_level))
 btn.pack(side='left', ipadx=12, padx=10)
 
 buttonbar2 = ttk.Frame(root, padding=10)
@@ -516,16 +527,16 @@ buttonbar2.pack()
 btn = ttk.Button(master=buttonbar2, text='制作答案', command=choice_level)
 btn.pack(side='left', ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='拼接图片', command=splice)
+btn = ttk.Button(master=buttonbar2, text='拼接图片', command=lambda: thread_it(splice))
 btn.pack(side='left', ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='拆文件名', command=copy_rename)
+btn = ttk.Button(master=buttonbar2, text='拆文件名', command=lambda: thread_it(copy_rename))
 btn.pack(side='left', ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='增加小题', command=add_point)
+btn = ttk.Button(master=buttonbar2, text='增加小题', command=lambda: thread_it(add_point))
 btn.pack(side='left', ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='添加编号', command=rename_id)
+btn = ttk.Button(master=buttonbar2, text='添加编号', command=lambda: thread_it(rename_id))
 btn.pack(side='left', ipadx=12, padx=10)
 
 root.config(menu=menubar)
