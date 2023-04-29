@@ -30,7 +30,7 @@ class MyThread(Thread):
 
 def sort_rule(score):
     """定义排序规则"""
-    if score is None or score == '':
+    if isinstance(score, str) or score is None:
         return 0
     else:
         return float(score)
@@ -324,7 +324,7 @@ class App(ttk.Frame):
                 student_num = len(student_data_reverse)
                 min_score = 0.0
                 for row_index, student in enumerate(student_data_reverse):
-                    if student.row[score_index] is None or student.row[score_index] == '':
+                    if isinstance(student.row[score_index], str) or student.row[score_index] is None:
                         continue
                     if float(student.row[score_index]) > 0.0:
                         student_num -= row_index
@@ -338,7 +338,7 @@ class App(ttk.Frame):
                 temp_dj = 0  # 初始等级和索引
                 for row_index, student in enumerate(self.student_objs):
                     current_score_str = student.row[score_index]
-                    if current_score_str is None or current_score_str == '' or float(current_score_str) < 0.001:
+                    if isinstance(current_score_str, str) or current_score_str is None or float(current_score_str) < 0.001:
                         continue
 
                     current_score = float(current_score_str)
@@ -361,7 +361,7 @@ class App(ttk.Frame):
                 # 计算赋分成绩
                 for student in self.student_objs:
                     score_str = student.row[score_index]
-                    if score_str is None or score_str == '' or float(score_str) < 0.001:
+                    if isinstance(score_str, str) or score_str is None or float(score_str) < 0.001:
                         student.row.append('')
                         student.row.append('')
                         continue
