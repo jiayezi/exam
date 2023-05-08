@@ -69,7 +69,7 @@ class App(ttk.Frame):
         self.btn_frame.grid(row=0, column=0, padx=80, sticky='n')
 
         ttk.Label(master=self.btn_frame, text='选择功能', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
-        self.open_btn = ttk.Button(master=self.btn_frame, text='打开文档', command=self.open_file)
+        self.open_btn = ttk.Button(master=self.btn_frame, text='打开文档', command=lambda: MyThread(self.open_file))
         self.open_btn.grid(row=1, column=0, pady=10)
         self.convert_btn = ttk.Button(master=self.btn_frame, text='成绩赋分',
                                       command=self.create_convert_page,
