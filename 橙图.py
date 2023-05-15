@@ -530,13 +530,13 @@ btn.pack(side='left', ipadx=12, padx=10)
 btn = ttk.Button(master=buttonbar2, text='拼接图片', command=lambda: thread_it(splice))
 btn.pack(side='left', ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='拆文件名', command=lambda: thread_it(copy_rename))
+btn = ttk.Button(master=buttonbar2, text='拆文件名', command=copy_rename)
 btn.pack(side='left', ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='增加小题', command=lambda: thread_it(add_point))
+btn = ttk.Button(master=buttonbar2, text='增加小题', command=add_point)
 btn.pack(side='left', ipadx=12, padx=10)
 
-btn = ttk.Button(master=buttonbar2, text='添加编号', command=lambda: thread_it(rename_id))
+btn = ttk.Button(master=buttonbar2, text='添加编号', command=rename_id)
 btn.pack(side='left', ipadx=12, padx=10)
 
 root.config(menu=menubar)
