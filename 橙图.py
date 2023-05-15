@@ -336,10 +336,6 @@ def add_point():
         return
     unfreeze()
     point_num = Querybox.get_integer(prompt='请输入小题数量：', initialvalue=2, minvalue=2)
-    if not isinstance(point_num, int):
-        info_text.insert('end', '必须输入纯数字\n', 'center')
-        freeze()
-        return
 
     file_path = os.path.dirname(img_list[0])
     for img in img_list:
