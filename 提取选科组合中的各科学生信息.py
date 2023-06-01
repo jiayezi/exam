@@ -3,7 +3,7 @@ from openpyxl import Workbook, load_workbook
 
 
 # 科目范围，是列数，不是索引
-subject_range = (1, 3)
+subject_range = (3, 5)
 
 
 def get_student_info():
@@ -12,7 +12,7 @@ def get_student_info():
                                            defaultextension='.xlsx')
     if not file_path:
         return
-    subject_dict = {'历史': [], '物理': [], '政治': [], '地理': [], '化学': [], '生物': []}
+    subject_dict = {'政治': [], '历史': [], '地理': [], '物理': [], '化学': [], '生物': []}
     wb = load_workbook(file_path)
     ws = wb.active
     title = next(ws.values)
