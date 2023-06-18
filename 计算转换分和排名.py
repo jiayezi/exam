@@ -21,7 +21,8 @@ class MyThread(Thread):
         super().__init__()
         self.func = func
         self.args = args
-        self.setDaemon(True)
+        # self.setDaemon(True)  # python3.10已弃用
+        self.daemon = True
         self.start()  # 在这里开始
 
     def run(self):

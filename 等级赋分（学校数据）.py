@@ -9,7 +9,7 @@
 from tkinter import filedialog
 from openpyxl import load_workbook, Workbook
 
-extra = 14  # 前9列数据用不上
+extra = 12  # 忽略前几列的数据
 
 # 读取Excel文件
 file_path = filedialog.askopenfilename(title='请选择Excel文件', initialdir='F:/用户目录/桌面/',
