@@ -1,24 +1,16 @@
 import os
 import openpyxl
-from openpyxl.styles import Border, Side
-from openpyxl.styles import Font, colors, Alignment
+from openpyxl.styles import Border, Side, Font, colors, Alignment
 from tkinter import filedialog
 
-# 设置每个工作表的合并范围
-range1 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'AI1:AI2', 'AJ1:AJ2')
-range2 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'W1:W2', 'X1:X2')
-range3 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'CH1:CH2', 'CI1:CI2')
-range4 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'AI1:AI2', 'AJ1:AJ2')
-range5 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'Y1:AA1', 'AG1:AG2', 'AH1:AH2')
-# range6 = ('A1:A2', 'B1:B2', 'C1:C2', 'D1:D2', 'AW1:AW2', 'AX1:AX2')
-table_ranges = (range1, range2, range3, range4, range5)
+save_path = 'E:/库/桌面/全部学校'
 
 # 定义格式
-Calibri_10_font = Font(name='Calibri', size=10)
-border1 = Border(left=Side(border_style='thin', color='000000'),
-                 right=Side(border_style='thin', color='000000'),
-                 top=Side(border_style='thin', color='000000'),
-                 bottom=Side(border_style='thin', color='000000'))
+font_Calibri_10 = Font(name='Calibri', size=10)
+border_thin = Border(left=Side(border_style='thin', color='000000'),
+                     right=Side(border_style='thin', color='000000'),
+                     top=Side(border_style='thin', color='000000'),
+                     bottom=Side(border_style='thin', color='000000'))
 
 path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
                                   defaultextension='.xlsx')
@@ -36,6 +28,7 @@ for index, sheet in enumerate(wb.sheetnames):
             # 只获取第一个工作表里的全部学校名字
             if index == 0:
                 schools.append(ws.cell(row, 2).value)
+print(f'一共 {len(schools)} 个学校')
 
 # 提取每个学校的数据
 for school in schools:
@@ -61,21 +54,23 @@ for school in schools:
             if row[1] == school:
                 ws_new.append(row)
 
-        # 设置边框、对齐方式、字体
-        for row in range(1, ws_new.max_row + 1):
-            for col in range(1, ws_new.max_column + 1):
-                ws_new.cell(row, col).border = border1
-                ws_new.cell(row, col).font = Calibri_10_font
-                ws_new.cell(row, col).alignment = Alignment(horizontal='center', vertical='center')
+        # 添加边框、对齐方式、字体
+        data_range = ws_new[ws_new.dimensions]
+        for row in data_range:
+            for cell in row:
+                cell.border = border_thin
+                cell.font = font_Calibri_10
+                cell.alignment = Alignment(horizontal='center', vertical='center')
 
         # 合并单元格
-        for rg in table_ranges[index]:
-            ws_new.merge_cells(rg)
+        for rg in ws.merged_cells:
+            ws_new.merge_cells(str(rg))
 
     # 保存并关闭工作簿
-    if not os.path.exists(f'F:/用户目录/桌面/全部学校/{school}'):
-        os.makedirs(f'F:/用户目录/桌面/全部学校/{school}')
-    wb_new.save(f'F:/用户目录/桌面/全部学校/{school}/{school}_班级小题均分.xlsx')
+    save_school_path = f'{save_path}/{school}'
+    if not os.path.exists(save_school_path):
+        os.makedirs(save_school_path)
+    wb_new.save(f'{save_school_path}/{school}_班级小题均分.xlsx')
     wb_new.close()
 
 wb.close()
