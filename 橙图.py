@@ -16,7 +16,7 @@ def thread_it(func, *args):
     # 创建
     t = threading.Thread(target=func, args=args)
     # 守护
-    t.setDaemon(True)
+    t.daemon = True
     # 启动
     t.start()
 
