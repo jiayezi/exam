@@ -24,10 +24,9 @@ for school in school_list:
     wb_new = openpyxl.Workbook(write_only=True)
 
     # 根据原始工作簿的工作表创建新工作簿的工作表，然后添加数据
-    for sheet in wb.sheetnames:
-        ws = wb[sheet]
+    for ws in wb:
+        ws_new = wb_new.create_sheet(ws.title)
         header = next(ws.values)
-        ws_new = wb_new.create_sheet(sheet)
         # 添加数据
         ws_new.append(header)
         for row in ws.values:
