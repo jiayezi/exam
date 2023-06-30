@@ -3,7 +3,6 @@ import openpyxl
 from openpyxl.styles import Border, Side, Font, colors, Alignment
 from tkinter import filedialog
 
-save_path = 'E:/库/桌面/全部学校'
 
 # 定义格式
 font_Calibri_10 = Font(name='Calibri', size=10)
@@ -14,13 +13,12 @@ border_thin = Border(left=Side(border_style='thin', color='000000'),
 
 path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
                                   defaultextension='.xlsx')
-
+save_path = os.path.dirname(path)+'/全部学校'
 wb = openpyxl.load_workbook(path)
 
 # 获取全部学校名字，填充学校名字
 schools = []
-for index, sheet in enumerate(wb.sheetnames):
-    ws = wb[sheet]
+for index, ws in enumerate(wb):
     for row in range(4, ws.max_row + 1):
         if ws.cell(row, 2).value == '' or ws.cell(row, 2).value is None:
             ws.cell(row, 2, ws.cell(row-1, 2).value)
@@ -35,13 +33,12 @@ for school in schools:
     wb_new = openpyxl.Workbook()
 
     # 根据原始工作簿的工作表创建新工作簿的工作表，然后添加数据
-    for index, sheet in enumerate(wb.sheetnames):
-        ws = wb[sheet]
+    for index, ws in enumerate(wb):
         if index == 0:
             ws_new = wb_new.active
-            ws_new.title = sheet
+            ws_new.title = ws.title
         else:
-            ws_new = wb_new.create_sheet(sheet)
+            ws_new = wb_new.create_sheet(ws.title)
 
         # 添加前3行
         for i, row in enumerate(ws.values):
