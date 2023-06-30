@@ -3,7 +3,6 @@ import openpyxl
 from openpyxl.styles import Border, Side, Font, colors, Alignment
 from tkinter import filedialog
 
-save_path = 'E:/库/桌面/全部学校'
 
 font_Calibri_10 = Font(name='Calibri', size=10)
 border_thin = Border(left=Side(border_style='thin', color='000000'),
@@ -13,7 +12,7 @@ border_thin = Border(left=Side(border_style='thin', color='000000'),
 
 path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
                                   defaultextension='.xlsx')
-
+save_path = os.path.dirname(path)+'/全部学校'
 wb = openpyxl.load_workbook(path)
 ws = wb.active
 
