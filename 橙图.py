@@ -514,7 +514,7 @@ btn.pack(side='left', ipadx=2, padx=10)
 btn = ttk.Button(master=buttonbar1, text='PDF转长图', command=lambda: thread_it(pdf_to_images))
 btn.pack(side='left', ipadx=6, padx=10)
 
-btn = ttk.Button(master=buttonbar1, text='图片裁剪', command=lambda: thread_it(cut_out_level))
+btn = ttk.Button(master=buttonbar1, text='图片裁剪', command=cut_out_level)
 btn.pack(side='left', ipadx=12, padx=10)
 
 buttonbar2 = ttk.Frame(root, padding=10)
