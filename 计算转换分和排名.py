@@ -361,12 +361,11 @@ class App(ttk.Frame):
 
                 # 计算赋分成绩
                 for student in self.student_objs:
-                    score_str = student.row[score_index]
-                    if isinstance(score_str, str) or score_str is None or float(score_str) < 0.001:
+                    score = student.row[score_index]
+                    if not isinstance(score, (int, float)) or score == 0:
                         student.row.append('')
                         student.row.append('')
                         continue
-                    score = float(score_str)
                     xsdj = 0
                     for index, dj_score in enumerate(rate_src):
                         if dj_score[0] >= score >= dj_score[1]:

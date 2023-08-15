@@ -36,7 +36,7 @@ def sort_rule(score):
     if isinstance(score, str) or score is None:
         return 0
     else:
-        return float(score)
+        return score
 
 
 def getp1(data, index, score):
@@ -103,13 +103,12 @@ for sub_index, subject in enumerate(subjects):
     prev = -1  # 上个分数，初始值为-1
     rank = 0  # 当前排名
     for r_index, row in enumerate(student_data):
-        score_str = row[extra + sub_index]
-        if isinstance(score_str, str) or score_str is None or float(score_str) < 0.001:
+        score = row[extra + sub_index]
+        if not isinstance(score, (int, float)) or score == 0:
             row.append('')
             row.append('')
             row.append('')
             continue
-        score = float(row[extra + sub_index])
         xsdj = -1
         converts = 0  # 转换分初始为0
         for index, dj_score in enumerate(rateS):
@@ -138,6 +137,7 @@ for sub_index, subject in enumerate(subjects):
     ws_title.append(f'{subject}转换分')
     ws_title.append(f'{subject}等级')
     ws_title.append(f'{subject}排名')
+wb.close()
 
 # 写入Excel文件
 wb = Workbook()
@@ -150,6 +150,7 @@ file_path = filedialog.asksaveasfilename(title='请选择文件存储路径', in
                                          filetypes=[('Excel', '.xlsx')], defaultextension='.xlsx')
 if file_path:
     wb.save(file_path)
+    wb.close()
 
 """
   * @param m 原始分开始
