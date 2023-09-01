@@ -258,12 +258,12 @@ class App(ttk.Frame):
 
         wb = load_workbook(path, read_only=True)
         ws = wb.active
-        self.title = list(next(ws.values))
 
         # 存为对象
         self.student_objs = []
         for i, row in enumerate(ws.values):
             if i == 0:
+                self.title = list(row)
                 continue
             stu_obj = Student(list(row))
             self.student_objs.append(stu_obj)

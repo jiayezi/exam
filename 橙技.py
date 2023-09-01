@@ -5,7 +5,9 @@
 import os
 import threading
 from tkinter import filedialog  # 文件访问对话框
-from ttkbootstrap.dialogs import Messagebox
+
+import openpyxl
+from ttkbootstrap.dialogs import Querybox, Messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.toast import ToastNotification
 from re import search
@@ -253,6 +255,66 @@ def format_table():
     info_text.yview_moveto(1)
     output_text.focus()
 
+    freeze()
+
+
+def format_table_new():
+    """把小分表修改成指定格式的Excel文档，方便上传"""
+    # 打开Excel表格
+    open_path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
+                                           defaultextension='.xlsx')
+    if not open_path:
+        return
+    unfreeze()
+
+    wb = openpyxl.load_workbook(open_path)
+    ws = wb.active
+
+    # 修改标题
+    titles = ('班级', '考号', '卷面分', '折算分', '客观题答案')
+    row1 = next(ws.rows)
+    for i, value in enumerate(titles):
+        row1[i].value = value
+
+    # 选科的小分表的班级的前两位是科目编号
+    subject_code = Querybox.get_string(prompt='请输入科目编号：', initialvalue='00')
+    max_values = []
+    for col_index, col in enumerate(ws.columns):
+        if col_index == 0:
+            # 修改班级为6位编号
+            for row_index, cell in enumerate(col):
+                if row_index == 0:
+                    continue
+                class_str = ''
+                cell_value = str(cell.value)
+                for s in cell_value:
+                    if s.isdigit():
+                        class_str += s
+                class_length = len(class_str)
+                if class_length > 2:
+                    class_str = class_str[-2:]
+                elif class_length == 1:
+                    class_str = '0'+class_str
+                elif class_length == 0:
+                    class_str = '99'
+                cell.value = f'{subject_code}00{class_str}'
+        if col_index > 4:
+            # 获取每一列的最大值
+            max_value = 0
+            for row_index, cell in enumerate(col):
+                if row_index == 0:
+                    continue
+                cell_value = cell.value
+                if cell_value > max_value:
+                    max_value = cell_value
+            max_values.append(max_value)
+    wb.save(open_path)
+    for value in max_values:
+        output_text.insert('end', f'{value}\n', 'center')
+
+    info_text.insert('end', '小分表修改完成\n', 'center')
+    info_text.yview_moveto(1)
+    output_text.focus()
     freeze()
 
 
@@ -541,7 +603,7 @@ btn.pack(side='left', padx=12)
 btn = ttk.Button(master=buttonbar, text='多选OMR', command=multiple_OMR)
 btn.pack(side='left', padx=12)
 
-btn = ttk.Button(master=buttonbar, text='小分表', command=lambda: thread_it(format_table))
+btn = ttk.Button(master=buttonbar, text='小分表', command=format_table_new)
 btn.pack(side='left', padx=12)
 
 btn = ttk.Button(master=buttonbar, text='总分表', command=total_score_level)
