@@ -540,7 +540,7 @@ class App(ttk.Frame):
         checkbutton_rank_group_var = []
         checkbutton_rank_group_name = []
         for i, item in enumerate(self.title):
-            if item not in possible_subjects_new:
+            if item[:2] not in possible_subjects:
                 checkbutton_rank_group_var.append(ttk.StringVar())
                 cb = ttk.Checkbutton(master=group_item_frame, text=f'{i + 1:0>2d} {item}',
                                      variable=checkbutton_rank_group_var[-1],
