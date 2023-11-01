@@ -31,6 +31,9 @@ def submit_task():
         save_name = save_name.replace(del_text, '')
         save_path = output_path + '/' + save_name
         result.save(save_path, format='JPEG', optimize=True, quality=quality)
+        img1.close()
+        img2.close()
+        result.close()
         os.rename(save_path, save_path + '.png')
 
     # 使用递归调用，迟早会把栈的空间用完，处理大量数据时不推荐
