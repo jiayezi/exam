@@ -1,6 +1,6 @@
 """
-图像界面程序，辅助处理试题结构和小分表的信息
-版本：1.4
+图像界面程序，辅助处理试题结构和小分表的信息，节约时间
+版本：2.0
 """
 import os
 import threading
@@ -11,7 +11,7 @@ from ttkbootstrap.dialogs import Querybox, Messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.toast import ToastNotification
 from re import search
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from win32com import client
 
 
@@ -51,6 +51,47 @@ def heading():
         output_text.insert('end', text)
         info_text.insert('end', '提取完成\n', 'center')
         output_text.focus()
+    freeze()
+
+
+def question_info():
+    """提取从考试系统下载的整卷详情表里的题目信息。"""
+    # 打开Excel表格
+    file_path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
+                                           defaultextension='.xlsx')
+    if not file_path:
+        return
+    unfreeze()
+    wb = load_workbook(file_path)
+
+    text = '题号\t分数\t排序号\t是否主观题[0-否，1-是]\t客观题答案\n'
+    counter = 0
+
+    ws = wb['客观题']
+    for i, row in enumerate(ws.values):
+        if i < 3:
+            continue
+        if row[0] is None:
+            break
+        counter += 100
+        answer = row[4]
+        if len(answer) > 1:
+            temp_list = answer.split('|')
+            answer = temp_list[-2][:-2]
+        text += f'{row[2]}\t{row[5]}\t{counter}\t0\t{answer}\n'
+    ws = wb['主观题']
+    for i, row in enumerate(ws.values):
+        if i < 3:
+            continue
+        if row[0] is None:
+            break
+        counter += 100
+        text += f'{row[1]}\t{row[2]}\t{counter}\t1\t\n'
+
+    wb.close()
+    output_text.insert('end', text)
+    info_text.insert('end', '提取完成\n', 'center')
+    output_text.focus()
     freeze()
 
 
@@ -502,25 +543,25 @@ def show_message():
 
     text0 = ttk.Text(top, width=100, height=20, spacing2=10, spacing3=15)
     text0.pack()
-    text0.insert('end', '题目：每行提取一个最多两位的数字\n'
+    text0.insert('end', '题号：每行提取一个最多两位的数字\n'
+                      '题目信息：提取从考试系统下载的整卷详情表里的题目信息\n'
                       '难度值：把数字放大100倍\n'
                       '单选答案：从文子里提取A-G的大写字母\n'
-                      '能力要求：把文字里的“√”替换成第一行对应的能力要求\n'
+                      '能力要求：把文字里的标记符号替换成第一行对应的能力要求\n'
                       'OMR：合并所有列，把多选题答案和空白替换成“.”\n'
                       '多选OMR：合并所有列，把每个多选题答案放进中括号里\n'
-                      '小分表：读取原始小分表，检查题目分数，在第一列插入16个0，第一行插入科目编号，另存为新的小分表\n'
+                      '小分表：读取原始小分表，检查题目分数，整理小分表，另存为新的小分表\n'
                       '总分：输入考号和单科成绩，生成总分表\n'
                       '拆分：按照小题分数把每个学生的总分拆分成小分\n')
 
     text0.tag_add('forever', 1.0, 'end')
     text0.tag_config('forever', foreground='green', font=('黑体', 12))
     text0.config(state='disabled')
-
     top.mainloop()
 
 
 def about():
-    Messagebox.show_info(title='关于', message='橙技 1.0\n')
+    Messagebox.show_info(title='关于', message='橙技 2.0\n作者：迦叶子\n1601235906')
 
 
 def paste_from_clipboard(event):
@@ -585,31 +626,34 @@ info_text.tag_config('center', foreground='green', justify='center')
 buttonbar = ttk.Labelframe(root, text='选择功能', labelanchor='n', padding=20)
 buttonbar.pack(pady=10,  padx=100)
 
-btn = ttk.Button(master=buttonbar, text='题目', command=heading)
-btn.pack(side='left', padx=12)
+btn = ttk.Button(master=buttonbar, text='题号', command=heading)
+btn.pack(side='left', padx=10)
+
+btn = ttk.Button(master=buttonbar, text='题目信息', command=question_info)
+btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='难度值', command=difficulty_level)
-btn.pack(side='left', padx=12)
+btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='单选答案', command=single_choice)
-btn.pack(side='left', padx=12)
+btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='能力要求', command=skill_requirements)
-btn.pack(side='left', padx=12)
+btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='OMR', command=OMR)
-btn.pack(side='left', padx=12)
+btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='多选OMR', command=multiple_OMR)
-btn.pack(side='left', padx=12)
+btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='小分表', command=format_table_new)
-btn.pack(side='left', padx=12)
+btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='总分表', command=total_score_level)
-btn.pack(side='left', padx=12)
+btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='拆分', command=split_score_level)
-btn.pack(side='left', padx=12)
+btn.pack(side='left', padx=10)
 
 root.mainloop()
