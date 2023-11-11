@@ -316,10 +316,12 @@ def format_table_new():
     row1 = next(ws.rows)
     for i, value in enumerate(titles):
         row1[i].value = value
+    for cell in row1:
+        cell.value = cell.value.replace('_得分', '')
 
     # 选科的小分表的班级的前两位是科目编号
     subject_code = Querybox.get_string(prompt='请输入科目编号：', initialvalue='00')
-    max_values = []
+    # max_values = []
     for col_index, col in enumerate(ws.columns):
         if col_index == 0:
             # 修改班级为6位编号
@@ -339,19 +341,19 @@ def format_table_new():
                 elif class_length == 0:
                     class_str = '99'
                 cell.value = f'{subject_code}00{class_str}'
-        if col_index > 4:
-            # 获取每一列的最大值
-            max_value = 0
-            for row_index, cell in enumerate(col):
-                if row_index == 0:
-                    continue
-                cell_value = cell.value
-                if cell_value > max_value:
-                    max_value = cell_value
-            max_values.append(max_value)
+        # if col_index > 4:
+        #     # 获取每一列的最大值
+        #     max_value = 0
+        #     for row_index, cell in enumerate(col):
+        #         if row_index == 0:
+        #             continue
+        #         cell_value = cell.value
+        #         if cell_value > max_value:
+        #             max_value = cell_value
+        #     max_values.append(max_value)
     wb.save(open_path)
-    for value in max_values:
-        output_text.insert('end', f'{value}\n', 'center')
+    # for value in max_values:
+    #     output_text.insert('end', f'{value}\n', 'center')
 
     info_text.insert('end', '小分表修改完成\n', 'center')
     info_text.yview_moveto(1)
