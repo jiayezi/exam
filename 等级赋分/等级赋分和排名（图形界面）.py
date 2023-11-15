@@ -40,8 +40,7 @@ def sort_rule(score):
 def select_all1(select_all_var, checkbutton_var, checkbutton_name):
     """全选和取消全选"""
     if select_all_var.get():
-        for index, var in enumerate(checkbutton_var):
-            name = checkbutton_name[index]
+        for var, name in zip(checkbutton_var, checkbutton_name):
             var.set(name)
     else:
         for var in checkbutton_var:
@@ -56,35 +55,32 @@ def close_handle():
 
 class App(ttk.Frame):
 
-    def __init__(self, master):
-        super().__init__(master, padding=20)
+    def __init__(self, app):
+        super().__init__(app, padding=20)
         self.title = []
         self.student_objs = []
         self.createUI()
 
     def createUI(self):
-        """创建界面元素"""
-        self.grid(row=0, column=0)
+        """创建主界面"""
+        self.grid(padx=80)  # self是Frame组件，主页的组件都放在Frame组件上
 
-        self.btn_frame = ttk.Frame(master=self)
-        self.btn_frame.grid(row=0, column=0, padx=80, sticky='n')
-
-        ttk.Label(master=self.btn_frame, text='选择功能', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
-        self.open_btn = ttk.Button(master=self.btn_frame, text='打开文档', command=lambda: MyThread(self.open_file))
+        ttk.Label(master=self, text='选择功能', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
+        self.open_btn = ttk.Button(master=self, text='打开文档', command=lambda: MyThread(self.open_file))
         self.open_btn.grid(row=1, column=0, pady=10)
-        self.convert_btn = ttk.Button(master=self.btn_frame, text='成绩赋分',
+        self.convert_btn = ttk.Button(master=self, text='成绩赋分',
                                       command=self.create_convert_page,
                                       state='disabled')
         self.convert_btn.grid(row=2, column=0, pady=10)
-        self.rank_btn = ttk.Button(master=self.btn_frame, text='计算排名',
+        self.rank_btn = ttk.Button(master=self, text='计算排名',
                                    command=self.create_rank_page,
                                    state='disabled')
         self.rank_btn.grid(row=3, column=0, pady=10)
-        self.save_btn = ttk.Button(master=self.btn_frame, text='保存文档', command=lambda: MyThread(self.save_file),
+        self.save_btn = ttk.Button(master=self, text='保存文档', command=lambda: MyThread(self.save_file),
                                    state='disabled')
         self.save_btn.grid(row=4, column=0, pady=10)
         self.info_text = ttk.StringVar()
-        ttk.Label(master=self.btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=5, column=0, pady=10)
+        ttk.Label(master=self, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=5, column=0, pady=10)
 
     def btn_freeze(self):
         self.open_btn.config(state='disabled')
@@ -276,7 +272,7 @@ class App(ttk.Frame):
         """创建转换分页面"""
         def back():
             convert_page.destroy()
-            self.grid()
+            self.grid(padx=80)
 
         def convert_score():
             """计算转换分"""
@@ -376,10 +372,10 @@ class App(ttk.Frame):
                     a = rate_dist[xsdj][1]
                     b = rate_dist[xsdj][0]
                     converts = (b * (score - m) + a * (n - score)) / (n - m)
-                    student.row.append(round(converts))
                     student.row.append(grade_dict[xsdj])
-                self.title.append(f'{subject}转换分')
+                    student.row.append(round(converts))
                 self.title.append(f'{subject}等级')
+                self.title.append(f'{subject}转换分')
 
             self.info_text.set('转换分计算完成')
             convert_btn.config(state='normal')
@@ -391,6 +387,7 @@ class App(ttk.Frame):
         btn_frame = ttk.Frame(master=convert_page)
         btn_frame.grid(row=0, column=1, padx=10, sticky='s')
         ttk.Label(master=item_frame, text='赋分科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
+        # 创建下拉列表
         template_files = os.listdir('conf')
         template_files.remove('新模板')
         cbox = ttk.Combobox(master=btn_frame, values=template_files, state='readonly', width=14)
@@ -424,7 +421,7 @@ class App(ttk.Frame):
         ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=3, column=0, pady=5)
         ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=4, column=0, pady=10)
 
-        # 隐藏主页，显示转换分页面
+        # 隐藏主界面，显示转换分界面
         self.grid_forget()
         convert_page.grid()
 
@@ -432,7 +429,7 @@ class App(ttk.Frame):
         """创建计算排名的页面"""
         def back():
             rank_page.destroy()
-            self.grid()
+            self.grid(padx=80)
 
         def rank_score():
             """计算排名"""
@@ -540,6 +537,8 @@ class App(ttk.Frame):
         checkbutton_rank_group_var = []
         checkbutton_rank_group_name = []
         for i, item in enumerate(self.title):
+            if item is None or len(item) < 2:
+                continue
             if item[:2] not in possible_subjects:
                 checkbutton_rank_group_var.append(ttk.StringVar())
                 cb = ttk.Checkbutton(master=group_item_frame, text=f'{i + 1:0>2d} {item}',
@@ -583,10 +582,10 @@ class App(ttk.Frame):
 
 
 if __name__ == "__main__":
-    app = ttk.Window(title="成绩计算程序")
+    app = ttk.Window(title="等级赋分程序")
     app.iconbitmap(bitmap='green_apple.ico')
     app.iconbitmap(default='green_apple.ico')
     app.protocol('WM_DELETE_WINDOW', close_handle)  # 启用协议处理机制，点击关闭时按钮，触发事件
     app.place_window_center()
-    App(app)
+    App(app)  # 创建一个框架对象
     app.mainloop()
