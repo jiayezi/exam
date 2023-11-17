@@ -74,11 +74,7 @@ def question_info():
         if row[0] is None:
             break
         counter += 100
-        answer = row[4]
-        if len(answer) > 1:
-            temp_list = answer.split('|')
-            answer = temp_list[-2][:-2]
-        text += f'{row[2]}\t{row[5]}\t{counter}\t0\t{answer}\n'
+        text += f'{row[2]}\t{row[5]}\t{counter}\t0\t{row[4]}\n'
     ws = wb['主观题']
     for i, row in enumerate(ws.values):
         if i < 3:
