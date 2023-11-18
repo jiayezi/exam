@@ -10,7 +10,6 @@ import openpyxl
 from ttkbootstrap.dialogs import Querybox, Messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.toast import ToastNotification
-from re import search
 from openpyxl import Workbook, load_workbook
 from win32com import client
 
@@ -30,28 +29,6 @@ def unfreeze():
     info_text.config(state='normal')
     output_text.delete(1.0, 'end')  # 删除文本框里的内容
     info_text.delete(1.0, 'end')
-
-
-def heading():
-    """提取数字"""
-    unfreeze()
-    data = input_text.get(1.0, 'end')
-    data = data.strip()
-    if data:
-        data_list = data.split('\n')
-        text = ''
-        for i, s in enumerate(data_list):
-            data_obj = search(r'\d{1,2}', s)
-            if not data_obj:
-                info_text.insert('end', '没有找到数字\n', 'center')
-                freeze()
-                return
-            data = data_obj.group()
-            text += f'{data}\n'
-        output_text.insert('end', text)
-        info_text.insert('end', '提取完成\n', 'center')
-        output_text.focus()
-    freeze()
 
 
 def question_info():
@@ -215,7 +192,7 @@ def multiple_OMR():
 
 
 def format_table():
-    """把小分表修改成指定格式的Excel文档，方便上传"""
+    """格式化小分表，添加科目编号，添加班级列，检查选择题答案的数量，获取每个题的最大值"""
     # 打开Excel表格
     open_path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
                                            defaultextension='.xlsx')
@@ -296,7 +273,7 @@ def format_table():
 
 
 def format_table_new():
-    """把小分表修改成指定格式的Excel文档，方便上传"""
+    """格式化小分表，只修改小分表的标题和班级编号"""
     # 打开Excel表格
     open_path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
                                            defaultextension='.xlsx')
@@ -350,6 +327,77 @@ def format_table_new():
     wb.save(open_path)
     # for value in max_values:
     #     output_text.insert('end', f'{value}\n', 'center')
+
+    info_text.insert('end', '小分表修改完成\n', 'center')
+    info_text.yview_moveto(1)
+    output_text.focus()
+    freeze()
+
+
+def format_table_om():
+    """格式化从鸥玛考试系统下载的小分表"""
+    # 打开Excel表格
+    open_path = filedialog.askopenfilename(title='请选择Excel文件', filetypes=[('Excel', '.xlsx')],
+                                           defaultextension='.xlsx')
+    if not open_path:
+        return
+    unfreeze()
+
+    wb = openpyxl.load_workbook(open_path)
+    ws = wb.active
+    wb2 = Workbook(write_only=True)
+    ws2 = wb2.create_sheet()
+    title = None
+    title2 = ['班级', '考号', '卷面分', '折算分', '客观题答案']
+
+    # 选科的小分表的班级的前两位是科目编号
+    subject_code = Querybox.get_string(prompt='请输入科目编号：', initialvalue='00')
+    invalid_score = ('缺考', '缺扫', 0)
+    row_list = []
+    score_start = 0
+    for row_index, row in enumerate(ws.values):
+        # 提取原始标题和题目起始索引
+        if row_index == 2:
+            title = row
+            for i, value in enumerate(title):
+                if i > 12 and value[-2:] != '选项':
+                    score_start = i
+                    break
+        if row_index < 3:
+            continue
+
+        # 提取班级、考号、科目分数
+        score = row[8]
+        if score in invalid_score:
+            continue
+        class_ = row[4]
+        if len(class_) == 1:
+            class_ = '0'+class_
+        temp_list = [f'{subject_code}00{class_}', row[1], score, score]
+
+        # 提取选择题
+        text = ''
+        for col_index in range(12, score_start):
+            text += f'{row[col_index]},'
+        temp_list.append(text[:-1])
+
+        # 提取小分
+        temp_list += row[score_start:-1]
+        row_list.append(temp_list)
+
+    # 替换文本
+    temp_list = title[score_start:-1]
+    for value in temp_list:
+        title2.append(value.replace('_得分', ''))
+
+    # 保存
+    ws2.append(title2)
+    for row in row_list:
+        ws2.append(row)
+
+    wb.close()
+    wb2.save(open_path)
+    wb2.close()
 
     info_text.insert('end', '小分表修改完成\n', 'center')
     info_text.yview_moveto(1)
@@ -585,7 +633,7 @@ def close_handle():
 
 # 窗口
 root = ttk.Window(themename='cerculean', title='橙技')
-root.geometry(f'1080x820')  # 窗口大小
+root.geometry(f'1180x820')  # 窗口大小
 root.iconbitmap(bitmap='green_apple.ico')
 root.iconbitmap(default='green_apple.ico')
 
@@ -624,9 +672,6 @@ info_text.tag_config('center', foreground='green', justify='center')
 buttonbar = ttk.Labelframe(root, text='选择功能', labelanchor='n', padding=20)
 buttonbar.pack(pady=10,  padx=100)
 
-btn = ttk.Button(master=buttonbar, text='题号', command=heading)
-btn.pack(side='left', padx=10)
-
 btn = ttk.Button(master=buttonbar, text='题目信息', command=question_info)
 btn.pack(side='left', padx=10)
 
@@ -643,6 +688,9 @@ btn = ttk.Button(master=buttonbar, text='OMR', command=OMR)
 btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='多选OMR', command=multiple_OMR)
+btn.pack(side='left', padx=10)
+
+btn = ttk.Button(master=buttonbar, text='小分表(鸥玛)', command=format_table_om)
 btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='小分表', command=format_table_new)
