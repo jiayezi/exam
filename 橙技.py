@@ -347,21 +347,22 @@ def format_table_om():
     ws = wb.active
     wb2 = Workbook(write_only=True)
     ws2 = wb2.create_sheet()
-    title = None
-    title2 = ['班级', '考号', '卷面分', '折算分', '客观题答案']
+    title = ['班级', '考号', '卷面分', '折算分', '客观题答案']
 
     # 选科的小分表的班级的前两位是科目编号
     subject_code = Querybox.get_string(prompt='请输入科目编号：', initialvalue='00')
     invalid_score = ('缺考', '缺扫', 0)
-    row_list = []
     score_start = 0
     for row_index, row in enumerate(ws.values):
         # 提取原始标题和题目起始索引
         if row_index == 2:
-            title = row
-            for i, value in enumerate(title):
+            for i, value in enumerate(row):
                 if i > 12 and value[-2:] != '选项':
                     score_start = i
+                    q_list = row[i: -1]
+                    for q in q_list:
+                        title.append(q.replace('_得分', ''))
+                    ws2.append(title)
                     break
         if row_index < 3:
             continue
@@ -375,7 +376,7 @@ def format_table_om():
             class_ = '0'+class_
         temp_list = [f'{subject_code}00{class_}', row[1], score, score]
 
-        # 提取选择题
+        # 提取选择题答案
         text = ''
         for col_index in range(12, score_start):
             text += f'{row[col_index]},'
@@ -383,17 +384,7 @@ def format_table_om():
 
         # 提取小分
         temp_list += row[score_start:-1]
-        row_list.append(temp_list)
-
-    # 替换文本
-    temp_list = title[score_start:-1]
-    for value in temp_list:
-        title2.append(value.replace('_得分', ''))
-
-    # 保存
-    ws2.append(title2)
-    for row in row_list:
-        ws2.append(row)
+        ws2.append(temp_list)
 
     wb.close()
     wb2.save(open_path)
