@@ -72,44 +72,39 @@ def difficulty_level():
     """把数字放大100倍"""
     unfreeze()
     counter = 0
-
-    data = input_text.get(1.0, 'end')
-    data = data.strip()
+    data = input_text.get(1.0, 'end').strip()
 
     if data:
         data_list = data.split('\n')
-
         text = ''
         for i, s in enumerate(data_list):
             try:
-                num = float(s)
-                num *= 100
+                num = float(s)*100
             except ValueError:
                 text += '\n'
                 info_text.insert('end', f'第 {i + 1} 行不是纯数字，处理失败\n', 'center')
             else:
-                text += f'{str(int(num))}\n'
+                text += f'{round(num)}\n'
                 counter += 1
 
-        output_text.insert('end', text[:-1])
+        output_text.insert('end', text.strip())
         info_text.insert('end', f'处理了 {counter} 个难度值\n', 'center')
         output_text.focus()
     freeze()
 
 
 def single_choice():
-    """提取字符串里的A、B、C、D、E、F、G"""
+    """提取字符串里的A、B、C、D、E、F、G、T"""
     unfreeze()
     data = input_text.get(1.0, 'end')  # 获取文本框里的数据
-    data = data.strip()
     if data:
         counter = 0
         text = ''
         for s in data:
-            if s in ('A', 'B', 'C', 'D', 'E', 'F', 'G'):
+            if s in ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'T'):
                 text += f'{s}\n'
                 counter += 1
-        output_text.insert('end', text[:-1])
+        output_text.insert('end', text.strip())
         info_text.insert('end', f'提取了 {counter} 个答案\n', 'center')
         output_text.focus()
     freeze()
@@ -117,29 +112,28 @@ def single_choice():
 
 def skill_requirements():
     """把符号替换成该列对应的文字"""
-    data = input_text.get(1.0, 'end')
-    data = data.strip()
+    data = input_text.get(1.0, 'end').strip()
     if not data:
         return
     unfreeze()
     data_list = data.split('\n')
     title = data_list[0]
-    rows = data_list[1:]
+    content = data_list[1:]
     title_list = title.split('\t')
 
     text = ''
-    for row_index, row in enumerate(rows):
+    for row_index, row in enumerate(content):
         row_list = row.split('\t')
-        blank = True
+        counter = 0
         for i, mark in enumerate(row_list):
             if mark.strip():
-                blank = False
+                counter += 1
                 text += f'{title_list[i]}/'
-        if blank:
+        if counter == 0:
             text += f'\n'
             info_text.insert('end', f'第 {row_index + 2} 行没有符号\n', 'center')
         text = text[:-1]+'\n'
-    output_text.insert('end', text[:-1])
+    output_text.insert('end', text.strip())
 
     info_text.insert('end', '全部处理完成\n', 'center')
     output_text.focus()
@@ -150,14 +144,13 @@ def OMR():
     """删除制表符，把长度不是1的字符串替换成."""
     unfreeze()
 
-    data = input_text.get(1.0, 'end')
-    data = data.strip().replace(' ', '.')
+    data = input_text.get(1.0, 'end').strip()
     data_list = data.split('\n')
 
     counter = 0
-    for line in data_list:
-        line_list = line.split('\t')
-        for s in line_list:
+    for row in data_list:
+        row_list = row.split('\t')
+        for s in row_list:
             if len(s) == 1:
                 output_text.insert('end', f'{s}')
             else:
@@ -174,13 +167,12 @@ def multiple_OMR():
     """合并不定向选择答案"""
     unfreeze()
 
-    data = input_text.get(1.0, 'end')
-    data = data.strip().replace(' ', '.')
+    data = input_text.get(1.0, 'end').strip()
     data_list = data.split('\n')
 
-    for line in data_list:
-        line_list = line.split('\t')
-        for s in line_list:
+    for row in data_list:
+        row_list = row.split('\t')
+        for s in row_list:
             if len(s) > 0:
                 output_text.insert('end', f'[{s}]')
             else:
@@ -684,7 +676,7 @@ btn.pack(side='left', padx=10)
 btn = ttk.Button(master=buttonbar, text='小分表(鸥玛)', command=format_table_om)
 btn.pack(side='left', padx=10)
 
-btn = ttk.Button(master=buttonbar, text='小分表', command=format_table_new)
+btn = ttk.Button(master=buttonbar, text='小分表', command=format_table)
 btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='总分表', command=total_score_level)

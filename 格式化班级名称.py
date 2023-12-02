@@ -48,8 +48,8 @@ for school_name, class_set in school_class_dict.items():
         class_list_new.append(class_new)
         if class_list_new:
             class_no = max(class_list_new) + 1
-        ws_new.append((school_name, class_, class_new))
+        ws_new.append((school_name, class_, f'{class_new:0>2d}'))
 
-wb_new.save(f'{os.path.dirname(path)}/学校班级.xlsx')
+wb_new.save(f'{os.path.dirname(path)}/学校班级对应.xlsx')
 wb_new.close()
 wb.close()
