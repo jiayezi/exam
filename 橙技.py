@@ -141,24 +141,24 @@ def skill_requirements():
 
 
 def OMR():
-    """删除制表符，把长度不是1的字符串替换成."""
+    """把制表符替换成逗号"""
     unfreeze()
 
     data = input_text.get(1.0, 'end').strip()
-    data_list = data.split('\n')
+    # data_list = data.split('\n')
+    # counter = 0
+    # for row in data_list:
+    #     row_list = row.split('\t')
+        # for s in row_list:
+        #     if len(s) == 1:
+        #         text += f'{s},'
+        #     else:
+        #         text += '.,'
+        #         counter += 1
+        # text = text[:-1] + '\n'
 
-    counter = 0
-    for row in data_list:
-        row_list = row.split('\t')
-        for s in row_list:
-            if len(s) == 1:
-                output_text.insert('end', f'{s}')
-            else:
-                output_text.insert('end', '.')
-                counter += 1
-        output_text.insert('end', '\n')
-
-    info_text.insert('end', f'替换 {counter} 处多选\n', 'center')
+    text = data.replace('\t', ',')
+    output_text.insert('end', text)
     output_text.focus()
     freeze()
 
