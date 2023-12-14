@@ -69,20 +69,27 @@ def submit_task():
     # 获取用户输入的数据，判断是否有效
     input_path = src_text.get()
     output_path = dst_text.get()
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
     del_text = del_entry.get()
     max_number = 32
     if cbox.get().isdigit():
         max_number = int(cbox.get())
     quality = round(sc.get())  # 如果sc.get()的值是小数，PIl可能无法保存图片
 
-    if not (os.path.isdir(input_path) and os.path.isdir(output_path)):
+    if not os.path.isdir(input_path):
+        messagebox.showerror('错误', '读取目录不存在！')
         return
     if input_path == output_path:
         messagebox.showwarning('警告', '读取目录和保存目录不能相同！')
         return
     img_list = os.listdir(input_path)
-    if len(img_list) < 2:
+    img_list_count = len(img_list)
+    if img_list_count < 2:
         messagebox.showerror('错误', '该目录下没有足够的文件！')
+        return
+    if img_list_count & 1 == 1:
+        messagebox.showerror('错误', '图片数量不是偶数！')
         return
 
     submit_btn.config(state=ttk.DISABLED)
@@ -95,7 +102,7 @@ def submit_task():
         splice_file_list.append((img_list[i], img_list[i + 1]))
         file_count += 1
 
-    # 每完成一张图片，进度条需要增加的值
+    # 每处理完一张图片，进度条需要增加的值
     step = 100.0 / file_count
 
     # 创建进度条线程和图片拼接线程
