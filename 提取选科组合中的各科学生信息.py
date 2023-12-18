@@ -3,9 +3,9 @@ from openpyxl import Workbook, load_workbook
 
 
 # 选科名称的索引
-subject_range = (2, 3, 4)
+subject_range = (9, 10, 11)
 # 考室号的索引
-room_index = 5
+room_index = 6
 # 主科
 pub_subject = '语文、数学、英语'
 
@@ -24,8 +24,8 @@ def get_student_info():
         if i == 0:
             continue
         subject_dict[pub_subject].append(row)
-        for j in range(3):
-            subject_name = row[subject_range[j]]
+        for j in subject_range:
+            subject_name = row[j]
             subject_dict[subject_name].append(row)
     wb.close()
 
