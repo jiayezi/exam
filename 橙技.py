@@ -498,11 +498,31 @@ def total_score_level():
 
 def split_score_level():
     """按小题的分数拆分总分"""
+
+    def paste_from_clipboard1(event):
+        clipboard_text = root.clipboard_get()
+        left_text.insert('end', clipboard_text)
+
+    def paste_from_clipboard2(event):
+        clipboard_text = root.clipboard_get()
+        mid_text.insert('end', clipboard_text)
+
+    def copy_to_clipboard(event):
+        selected_text = right_text.get(1.0, 'end')
+        root.clipboard_clear()
+        root.clipboard_append(selected_text)
+
+        info_text.config(state='normal')
+        info_text.insert('end', '已复制到剪贴板\n', 'center')
+        freeze()
+
     def split_score():
         data = left_text.get(1.0, 'end').strip()
         small_data = mid_text.get(1.0, 'end').strip()
         if not (data and small_data):
             return
+        left_text.delete(1.0, 'end')
+        mid_text.delete(1.0, 'end')
         right_text.delete(1.0, 'end')
         total_score_list = data.split('\n')
         small_score_list = small_data.split('\n')
@@ -544,10 +564,13 @@ def split_score_level():
 
     left_text = ttk.Text(top, width=5, height=25)
     left_text.grid(row=1, column=0, padx=(20, 10))
+    left_text.bind("<Double-Button-1>", paste_from_clipboard1)
     mid_text = ttk.Text(top, width=5, height=25)
     mid_text.grid(row=1, column=1, padx=10)
+    mid_text.bind("<Double-Button-1>", paste_from_clipboard2)
     right_text = ttk.Text(top, width=90, height=25, state='disabled')
     right_text.grid(row=1, column=2, padx=(10, 20))
+    right_text.bind("<Double-Button-1>", copy_to_clipboard)
 
     btn = ttk.Button(master=top, text='计算', command=split_score)
     btn.grid(row=2, column=0, ipadx=10, pady=20, columnspan=3)
@@ -676,7 +699,7 @@ btn.pack(side='left', padx=10)
 btn = ttk.Button(master=buttonbar, text='小分表(鸥玛)', command=format_table_om)
 btn.pack(side='left', padx=10)
 
-btn = ttk.Button(master=buttonbar, text='小分表', command=format_table)
+btn = ttk.Button(master=buttonbar, text='小分表', command=format_table_new)
 btn.pack(side='left', padx=10)
 
 btn = ttk.Button(master=buttonbar, text='总分表', command=total_score_level)
