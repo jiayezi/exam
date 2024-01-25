@@ -13,36 +13,42 @@ path = filedialog.askopenfilename(title='请选择Excel文件', initialdir='F:/�
                                   filetypes=[('Excel', '.xlsx')], defaultextension='.xlsx')
 
 wb = openpyxl.load_workbook(path, read_only=True)
-ws = wb.active
 
-# 获取全部名字
-names = set()
-for i, row in enumerate(ws.values):
-    if i < title_rows:
-        continue
-    names.add(row[name_index])
+# 读取数据并分组
+title_dict = {}
+data_dict = {}
+for ws in wb:
+    sheetname = ws.title
+    title_dict[sheetname] = []
+    for j, row in enumerate(ws.values):
+        if j < title_rows:
+            title_dict[sheetname].append(row)
+            continue
+        wbname = row[name_index]
+        if wbname not in data_dict:
+            data_dict[wbname] = {}
+        if sheetname not in data_dict[wbname]:
+            data_dict[wbname][sheetname] = set()
+        data_dict[wbname][sheetname].add(row)
 
-# 提取数据
-for name in names:
+# 生成新工作簿
+for wbname, sheet_data in data_dict.items():
     wb_new = openpyxl.Workbook(write_only=True)
-
-    # 根据原始工作簿的工作表创建新工作簿的工作表，然后添加数据
-    for ws in wb:
-        ws_new = wb_new.create_sheet(ws.title)
-        # ws_new = wb_new.active
-        for i, row in enumerate(ws.values):
-            # 添加标题
-            if i < title_rows:
-                ws_new.append(row)
-            # 添加数据
-            if row[name_index] == name:
-                ws_new.append(row)
+    for sheetname, row_data in sheet_data.items():
+        ws_new = wb_new.create_sheet(sheetname)
+        # 添加标题
+        title = title_dict[sheetname]
+        for row in title:
+            ws_new.append(row)
+        # 添加数据
+        for row in row_data:
+            ws_new.append(row)
         # 合并单元格
         # for rg in ws.merged_cells:
         #     ws_new.merge_cells(str(rg))
 
     # 保存并关闭工作簿
-    wb_new.save(f'{save_path}/{name}.xlsx')
+    wb_new.save(f'{save_path}/{wbname}.xlsx')
     wb_new.close()
 
 wb.close()
