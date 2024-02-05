@@ -269,16 +269,16 @@ class App(ttk.Frame):
         self.btn_unfreeze()
 
     def create_convert_page(self):
-        """创建转换分页面"""
+        """创建赋分页面"""
         def back():
             convert_page.destroy()
             self.grid(padx=80)
 
         def convert_score():
-            """计算转换分"""
+            """计算赋分"""
             convert_btn.config(state='disabled')
             self.btn_freeze()
-            self.info_text.set('正在计算转换分')
+            self.info_text.set('正在计算赋分')
 
             # 获取选中的科目的下标和名字
             selected_subject_index = []
@@ -375,9 +375,9 @@ class App(ttk.Frame):
                     student.row.append(grade_dict[xsdj])
                     student.row.append(round(converts))
                 self.title.append(f'{subject}等级')
-                self.title.append(f'{subject}转换分')
+                self.title.append(f'{subject}赋分')
 
-            self.info_text.set('转换分计算完成')
+            self.info_text.set('赋分计算完成')
             convert_btn.config(state='normal')
             self.btn_unfreeze()
 
@@ -421,7 +421,7 @@ class App(ttk.Frame):
         ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=3, column=0, pady=5)
         ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=4, column=0, pady=10)
 
-        # 隐藏主界面，显示转换分界面
+        # 隐藏主界面，显示赋分界面
         self.grid_forget()
         convert_page.grid()
 
@@ -515,7 +515,7 @@ class App(ttk.Frame):
 
         possible_subjects = ['语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
                              '生物', '总分']
-        possible_subjects_convert = [f'{item}转换分' for item in possible_subjects]
+        possible_subjects_convert = [f'{item}赋分' for item in possible_subjects]
         possible_subjects_new = possible_subjects + possible_subjects_convert
         checkbutton_var = []
         checkbutton_name = []
