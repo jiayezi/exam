@@ -382,11 +382,21 @@ class App(ttk.Frame):
             self.btn_unfreeze()
 
         convert_page = ttk.Frame(master=app, padding=20)
-        # 创建左右两个子框架
-        item_frame = ttk.Frame(master=convert_page)
-        item_frame.grid(row=0, column=0, padx=10, sticky='n')
+
+        # 第一列 创建Canvas
+        canvas = ttk.Canvas(master=convert_page, width=150)
+        canvas.grid(row=0, column=0, padx=10, sticky='nsew')
+        # 第二列 创建垂直滚动条并关联Canvas
+        scrollbar = ttk.Scrollbar(master=convert_page, orient="vertical", command=canvas.yview)
+        scrollbar.grid(row=0, column=1, sticky='ns')
+        canvas.configure(yscrollcommand=scrollbar.set)
+        # 创建一个新的框架，将其放在Canvas上
+        item_frame = ttk.Frame(master=canvas)
+        canvas.create_window((0, 0), window=item_frame, anchor='nw')
+
+        # 第三列 创建按钮框架
         btn_frame = ttk.Frame(master=convert_page)
-        btn_frame.grid(row=0, column=1, padx=10, sticky='s')
+        btn_frame.grid(row=0, column=2, padx=10, sticky='e')
 
         ttk.Label(master=item_frame, text='赋分科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
         # 创建下拉列表
@@ -414,6 +424,18 @@ class App(ttk.Frame):
                                      onvalue=item, offvalue='')
                 cb.grid(row=i + 2, column=0, pady=3, sticky='w')
                 checkbutton_name.append(item)
+
+        # 配置Canvas的滚动区域
+        item_frame.update_idletasks()
+        canvas.config(scrollregion=canvas.bbox("all"))
+
+        # ...
+
+        # 注意：如果你的窗口可变大小，可能需要在窗口大小变化时更新scrollregion
+        def on_canvas_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        canvas.bind('<Configure>', on_canvas_configure)
 
         # 创建按钮和标签
         self.template_btn = ttk.Button(master=btn_frame, text='模板维护', command=self.convert_template_level)
