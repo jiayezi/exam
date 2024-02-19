@@ -390,13 +390,13 @@ class App(ttk.Frame):
         scrollbar = ttk.Scrollbar(master=convert_page, orient="vertical", command=canvas.yview)
         scrollbar.grid(row=0, column=1, sticky='ns')
         canvas.configure(yscrollcommand=scrollbar.set)
-        # 创建一个新的框架，将其放在Canvas上
+        # 创建科目框架，将其放在Canvas上
         item_frame = ttk.Frame(master=canvas)
-        canvas.create_window((0, 0), window=item_frame, anchor='nw')
+        canvas.create_window((0, 0), window=item_frame)
 
         # 第三列 创建按钮框架
         btn_frame = ttk.Frame(master=convert_page)
-        btn_frame.grid(row=0, column=2, padx=10, sticky='e')
+        btn_frame.grid(row=0, column=2, padx=10)
 
         ttk.Label(master=item_frame, text='赋分科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
         # 创建下拉列表
@@ -428,8 +428,6 @@ class App(ttk.Frame):
         # 配置Canvas的滚动区域
         item_frame.update_idletasks()
         canvas.config(scrollregion=canvas.bbox("all"))
-
-        # ...
 
         # 注意：如果你的窗口可变大小，可能需要在窗口大小变化时更新scrollregion
         def on_canvas_configure(event):
@@ -521,12 +519,25 @@ class App(ttk.Frame):
             self.btn_unfreeze()
 
         rank_page = ttk.Frame(master=app, padding=20)
-        subject_item_frame = ttk.Frame(master=rank_page)
-        subject_item_frame.grid(row=0, column=0, padx=10, sticky='n')
+
+        # 第一列 创建Canvas
+        canvas = ttk.Canvas(master=rank_page, width=150)
+        canvas.grid(row=0, column=0, padx=10, sticky='nsew')
+        # 第二列 创建垂直滚动条并关联Canvas
+        scrollbar = ttk.Scrollbar(master=rank_page, orient="vertical", command=canvas.yview)
+        scrollbar.grid(row=0, column=1, sticky='ns')
+        canvas.configure(yscrollcommand=scrollbar.set)
+        # 创建一个科目框架，将其放在Canvas上
+        subject_item_frame = ttk.Frame(master=canvas)
+        canvas.create_window((0, 0), window=subject_item_frame)
+
+        # 第二列 创建分组框架
         group_item_frame = ttk.Frame(master=rank_page)
-        group_item_frame.grid(row=0, column=1, padx=10, sticky='n')
+        group_item_frame.grid(row=0, column=2, padx=10, sticky='nsew')
+
+        # 第三列 创建按钮框架
         btn_frame = ttk.Frame(master=rank_page)
-        btn_frame.grid(row=0, column=2, padx=10, sticky='s')
+        btn_frame.grid(row=0, column=3, padx=10)
         ttk.Label(master=subject_item_frame, text='排名科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10),
                                                                                       sticky='w')
         ttk.Label(master=group_item_frame, text='排名分组', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10),
@@ -549,6 +560,16 @@ class App(ttk.Frame):
                                      onvalue=item, offvalue='')
                 cb.grid(row=i + 2, column=0, pady=3, sticky='w')
                 checkbutton_name.append(item)
+
+        # 配置Canvas的滚动区域
+        subject_item_frame.update_idletasks()
+        canvas.config(scrollregion=canvas.bbox("all"))
+
+        # 注意：如果你的窗口可变大小，可能需要在窗口大小变化时更新scrollregion
+        def on_canvas_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        canvas.bind('<Configure>', on_canvas_configure)
 
         # 创建分组复选框
         select_all_var2 = ttk.StringVar()
