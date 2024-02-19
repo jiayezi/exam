@@ -382,10 +382,12 @@ class App(ttk.Frame):
             self.btn_unfreeze()
 
         convert_page = ttk.Frame(master=app, padding=20)
+        # 创建左右两个子框架
         item_frame = ttk.Frame(master=convert_page)
         item_frame.grid(row=0, column=0, padx=10, sticky='n')
         btn_frame = ttk.Frame(master=convert_page)
         btn_frame.grid(row=0, column=1, padx=10, sticky='s')
+
         ttk.Label(master=item_frame, text='赋分科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10))
         # 创建下拉列表
         template_files = os.listdir('conf')
@@ -400,12 +402,12 @@ class App(ttk.Frame):
                              onvalue='全选', offvalue='', command=lambda: select_all1(select_all_var, checkbutton_var, checkbutton_name))
         cb.grid(row=1, column=0, pady=5, sticky='w')
 
-        possible_subjects = (
-            '语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学', '生物', '总分')
+        possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
+                             '生物', '总分', '总成绩', '全科')
         checkbutton_var = []
         checkbutton_name = []
         for i, item in enumerate(self.title):
-            if item in possible_subjects:
+            if item[:2] in possible_subjects:
                 checkbutton_var.append(ttk.StringVar())
                 cb = ttk.Checkbutton(master=item_frame, text=f'{i + 1:0>2d} {item}',
                                      variable=checkbutton_var[-1],
@@ -513,14 +515,12 @@ class App(ttk.Frame):
                              onvalue='全选', offvalue='', command=lambda: select_all1(select_all_var1, checkbutton_var, checkbutton_name))
         cb.grid(row=1, column=0, pady=5, sticky='w')
 
-        possible_subjects = ['语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
-                             '生物', '总分']
-        possible_subjects_convert = [f'{item}赋分' for item in possible_subjects]
-        possible_subjects_new = possible_subjects + possible_subjects_convert
+        possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
+                             '生物', '总分', '总成绩', '全科')
         checkbutton_var = []
         checkbutton_name = []
         for i, item in enumerate(self.title):
-            if item in possible_subjects_new:
+            if item[:2] in possible_subjects or item[-2:] == '赋分':
                 checkbutton_var.append(ttk.StringVar())
                 cb = ttk.Checkbutton(master=subject_item_frame, text=f'{i + 1:0>2d} {item}',
                                      variable=checkbutton_var[-1],
