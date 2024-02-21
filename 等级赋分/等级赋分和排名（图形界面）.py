@@ -76,26 +76,35 @@ class App(ttk.Frame):
                                    command=self.create_rank_page,
                                    state='disabled')
         self.rank_btn.grid(row=3, column=0, pady=10)
+        self.total_btn = ttk.Button(master=self, text='组合成绩',
+                                    command=self.create_sum_page,
+                                    state='disabled')
+        self.total_btn.grid(row=4, column=0, pady=10)
         self.save_btn = ttk.Button(master=self, text='保存文档', command=lambda: MyThread(self.save_file),
                                    state='disabled')
-        self.save_btn.grid(row=4, column=0, pady=10)
+        self.save_btn.grid(row=5, column=0, pady=10)
         self.info_text = ttk.StringVar()
-        ttk.Label(master=self, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=5, column=0, pady=10)
+        ttk.Label(master=self, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=6,
+                                                                                                          column=0,
+                                                                                                          pady=10)
 
     def btn_freeze(self):
         self.open_btn.config(state='disabled')
         self.convert_btn.config(state='disabled')
         self.rank_btn.config(state='disabled')
+        self.total_btn.config(state='disabled')
         self.save_btn.config(state='disabled')
 
     def btn_unfreeze(self):
         self.open_btn.config(state='normal')
         self.convert_btn.config(state='normal')
         self.rank_btn.config(state='normal')
+        self.total_btn.config(state='normal')
         self.save_btn.config(state='normal')
 
     def convert_template_level(self):
         """维护赋分模板的顶层窗口"""
+
         def save_template(file_name, et_obj):
             """将所有输入框的值保存到文件"""
             # 验证数字
@@ -115,7 +124,7 @@ class App(ttk.Frame):
                 text = ''
                 for row_obj in et_obj:
                     values = [et.get() for et in row_obj]
-                    text += '\t'.join(values)+'\n'
+                    text += '\t'.join(values) + '\n'
                 f.write(text[:-1])
             Messagebox.show_info(parent=top, message='保存成功')
 
@@ -138,7 +147,7 @@ class App(ttk.Frame):
                     et.config(validatecommand=lambda e=et: check(e))
                 else:
                     et = ttk.Entry(et_frame, width=3)
-                et.grid(row=len(et_obj)+1, column=col, padx=10, pady=5)
+                et.grid(row=len(et_obj) + 1, column=col, padx=10, pady=5)
                 row_obj.append(et)
             et_obj.append(row_obj)
 
@@ -198,7 +207,7 @@ class App(ttk.Frame):
                         et.config(validatecommand=lambda e=et: check(e))
                     else:
                         et = ttk.Entry(et_frame, width=3)
-                    et.grid(row=row_index+1, column=col_index, padx=10, pady=5)
+                    et.grid(row=row_index + 1, column=col_index, padx=10, pady=5)
                     et.insert('end', value)
                     row_obj.append(et)
                 et_obj.append(row_obj)
@@ -210,7 +219,8 @@ class App(ttk.Frame):
 
             ttk.Button(master=btn_frame, text='新增一级', command=lambda: add_et_row(et_frame, et_obj)).grid(pady=5)
             ttk.Button(master=btn_frame, text='删除一级', command=lambda: del_et_row(et_obj)).grid(pady=5)
-            ttk.Button(master=btn_frame, text='保存模板', command=lambda: save_template(file_name_et.get(), et_obj)).grid(pady=5)
+            ttk.Button(master=btn_frame, text='保存模板',
+                       command=lambda: save_template(file_name_et.get(), et_obj)).grid(pady=5)
             ttk.Button(master=btn_frame, text='返回上页', command=go_to_top).grid(pady=5)
 
             list_frame.grid_forget()
@@ -234,11 +244,15 @@ class App(ttk.Frame):
         template_list = os.listdir('conf')
         template_list.remove('新模板')
         for i, template in enumerate(template_list):
-            ttk.Label(master=list_frame, text=template, font=('黑体', 12)).grid(row=i+1, column=0, padx=5, pady=5)
-            ttk.Button(master=list_frame, text='修改', command=lambda t=template: modify_template(t), bootstyle='outline').grid(row=i+1, column=1, padx=5, pady=5)
-            ttk.Button(master=list_frame, text='删除', command=lambda t=template: del_template(t), bootstyle='outline').grid(row=i + 1, column=2, padx=5,  pady=5)
-        ttk.Button(master=list_frame, text='添加', command=lambda: modify_template(new_template), bootstyle='outline').grid(row=len(template_list)+1, column=1, padx=5, pady=5)
-        ttk.Button(master=list_frame, text='关闭', command=close_top_level, bootstyle='outline').grid(row=len(template_list)+1, column=2, padx=5, pady=5)
+            ttk.Label(master=list_frame, text=template, font=('黑体', 12)).grid(row=i + 1, column=0, padx=5, pady=5)
+            ttk.Button(master=list_frame, text='修改', command=lambda t=template: modify_template(t),
+                       bootstyle='outline').grid(row=i + 1, column=1, padx=5, pady=5)
+            ttk.Button(master=list_frame, text='删除', command=lambda t=template: del_template(t),
+                       bootstyle='outline').grid(row=i + 1, column=2, padx=5, pady=5)
+        ttk.Button(master=list_frame, text='添加', command=lambda: modify_template(new_template),
+                   bootstyle='outline').grid(row=len(template_list) + 1, column=1, padx=5, pady=5)
+        ttk.Button(master=list_frame, text='关闭', command=close_top_level, bootstyle='outline').grid(
+            row=len(template_list) + 1, column=2, padx=5, pady=5)
 
         top.mainloop()
 
@@ -270,6 +284,7 @@ class App(ttk.Frame):
 
     def create_convert_page(self):
         """创建赋分页面"""
+
         def back():
             convert_page.destroy()
             self.grid(padx=80)
@@ -335,7 +350,7 @@ class App(ttk.Frame):
                 temp_dj = 0  # 初始等级和索引
                 for row_index, student in enumerate(self.student_objs):
                     current_score_str = student.row[score_index]
-                    if isinstance(current_score_str, str) or current_score_str is None or float(current_score_str) < 0.001:
+                    if not isinstance(current_score_str, (int, float)):
                         continue
 
                     current_score = float(current_score_str)
@@ -409,7 +424,8 @@ class App(ttk.Frame):
         # 创建复选框
         select_all_var = ttk.StringVar()
         cb = ttk.Checkbutton(master=item_frame, text='全选', variable=select_all_var,
-                             onvalue='全选', offvalue='', command=lambda: select_all1(select_all_var, checkbutton_var, checkbutton_name))
+                             onvalue='全选', offvalue='',
+                             command=lambda: select_all1(select_all_var, checkbutton_var, checkbutton_name))
         cb.grid(row=1, column=0, pady=5, sticky='w')
 
         possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
@@ -441,7 +457,9 @@ class App(ttk.Frame):
         convert_btn = ttk.Button(master=btn_frame, text='成绩赋分', command=lambda: MyThread(convert_score))
         convert_btn.grid(row=2, column=0, pady=5)
         ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=3, column=0, pady=5)
-        ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=4, column=0, pady=10)
+        ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=4,
+                                                                                                               column=0,
+                                                                                                               pady=10)
 
         # 隐藏主界面，显示赋分界面
         self.grid_forget()
@@ -449,6 +467,7 @@ class App(ttk.Frame):
 
     def create_rank_page(self):
         """创建计算排名的页面"""
+
         def back():
             rank_page.destroy()
             self.grid(padx=80)
@@ -502,11 +521,10 @@ class App(ttk.Frame):
                     prev = -1  # 上个分数，初始值为-1
                     rank = 0  # 当前排名
                     for s_index, student in enumerate(student_objs_new):
-                        score_str = student.row[score_index]
-                        if score_str is None or score_str == '' or float(score_str) < 0.001:
+                        score = student.row[score_index]
+                        if not isinstance(score, (int, float)):
                             student.row.append('')
                             continue
-                        score = float(score_str)
                         # 如果分数不一样，排名就是索引值+1，如果分数一样，排名不变
                         if score != prev:
                             rank = s_index + 1
@@ -545,7 +563,8 @@ class App(ttk.Frame):
         # 创建科目复选框
         select_all_var1 = ttk.StringVar()
         cb = ttk.Checkbutton(master=subject_item_frame, text='全选', variable=select_all_var1,
-                             onvalue='全选', offvalue='', command=lambda: select_all1(select_all_var1, checkbutton_var, checkbutton_name))
+                             onvalue='全选', offvalue='',
+                             command=lambda: select_all1(select_all_var1, checkbutton_var, checkbutton_name))
         cb.grid(row=1, column=0, pady=5, sticky='w')
 
         possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
@@ -574,7 +593,9 @@ class App(ttk.Frame):
         # 创建分组复选框
         select_all_var2 = ttk.StringVar()
         cb = ttk.Checkbutton(master=group_item_frame, text='全选', variable=select_all_var2,
-                             onvalue='全选', offvalue='', command=lambda: select_all1(select_all_var2, checkbutton_rank_group_var, checkbutton_rank_group_name))
+                             onvalue='全选', offvalue='',
+                             command=lambda: select_all1(select_all_var2, checkbutton_rank_group_var,
+                                                         checkbutton_rank_group_name))
         cb.grid(row=1, column=0, pady=5, sticky='w')
 
         checkbutton_rank_group_var = []
@@ -594,10 +615,163 @@ class App(ttk.Frame):
         rank_btn = ttk.Button(master=btn_frame, text='计算排名', command=lambda: MyThread(rank_score))
         rank_btn.grid(row=0, column=0, pady=5)
         ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=1, column=0, pady=5)
-        ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=2, column=0, pady=10)
+        ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=2,
+                                                                                                               column=0,
+                                                                                                               pady=10)
 
         self.grid_forget()
         rank_page.grid()
+
+    def create_sum_page(self):
+        """创建计算每个选科组合的总分的页面"""
+
+        def back():
+            sum_page.destroy()
+            self.grid(padx=80)
+
+        def total_score():
+            """计算每个选科组合的总分"""
+            total_btn.config(state='disabled')
+            self.btn_freeze()
+            self.info_text.set('正在每个组合的总分')
+
+            # 获取选中的固定科目的名字
+            selected_subject_name = []
+            for value in checkbutton_var:
+                data = value.get()
+                if data:
+                    selected_subject_name.append(data)
+
+            # 获取选中的变化科目的名字
+            selected_subject_name2 = []
+            for value in checkbutton_var2:
+                data = value.get()
+                if data:
+                    selected_subject_name2.append(data)
+
+            # 根据选择的科目，生成各个组合，并计算
+            import itertools
+            for value in itertools.combinations(selected_subject_name2, 2):
+                temp_text = ''.join(selected_subject_name)
+                title_text = f'{temp_text}{value[0]}{value[1]}组合'.replace('语文数学英语', '')
+                # 6个科目名字的列表
+                subject_list = selected_subject_name + list(value)
+
+                # 获取6个科目名字的索引
+                subject_index = []
+                for subject_name in subject_list:
+                    index = self.title.index(subject_name)
+                    subject_index.append(index)
+
+                for s_index, student in enumerate(self.student_objs):
+                    s = 0
+                    for index in subject_index:
+                        score = student.row[index]
+                        if not isinstance(score, (int, float)):
+                            continue
+                        s += score
+                    student.row.append(s)
+                self.title.append(title_text)
+
+            self.info_text.set('组合成绩计算完成')
+            total_btn.config(state='normal')
+            self.btn_unfreeze()
+
+        sum_page = ttk.Frame(master=app, padding=20)
+
+        # 第一列 创建Canvas
+        canvas = ttk.Canvas(master=sum_page, width=150)
+        canvas.grid(row=0, column=0, padx=10, sticky='nsew')
+        # 第二列 创建垂直滚动条并关联Canvas
+        scrollbar = ttk.Scrollbar(master=sum_page, orient="vertical", command=canvas.yview)
+        scrollbar.grid(row=0, column=1, sticky='ns')
+        canvas.configure(yscrollcommand=scrollbar.set)
+        # 创建一个科目框架，将其放在Canvas上
+        subject_required_frame = ttk.Frame(master=canvas)
+        canvas.create_window((0, 0), window=subject_required_frame)
+
+        # 第三列 创建Canvas
+        canvas2 = ttk.Canvas(master=sum_page, width=150)
+        canvas2.grid(row=0, column=2, padx=10, sticky='nsew')
+        # 第四列 创建垂直滚动条并关联Canvas
+        scrollbar = ttk.Scrollbar(master=sum_page, orient="vertical", command=canvas2.yview)
+        scrollbar.grid(row=0, column=3, sticky='ns')
+        canvas2.configure(yscrollcommand=scrollbar.set)
+        # 创建一个科目框架，将其放在Canvas上
+        subject_optional_frame = ttk.Frame(master=canvas2)
+        canvas2.create_window((0, 0), window=subject_optional_frame)
+
+        # 第五列 创建按钮框架
+        btn_frame = ttk.Frame(master=sum_page)
+        btn_frame.grid(row=0, column=4, padx=10)
+
+        ttk.Label(master=subject_required_frame, text='固定科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10),
+                                                                                          sticky='w')
+        ttk.Label(master=subject_optional_frame, text='组合科目', font=('黑体', 12)).grid(row=0, column=0, pady=(0, 10),
+                                                                                          sticky='w')
+        # 创建固定科目复选框
+        select_all_var1 = ttk.StringVar()
+        cb = ttk.Checkbutton(master=subject_required_frame, text='全选', variable=select_all_var1,
+                             onvalue='全选', offvalue='',
+                             command=lambda: select_all1(select_all_var1, checkbutton_var, checkbutton_name))
+        cb.grid(row=1, column=0, pady=5, sticky='w')
+
+        possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
+                             '生物', '总分', '总成绩', '全科')
+        checkbutton_var = []
+        checkbutton_name = []
+        for i, item in enumerate(self.title):
+            if item[:2] in possible_subjects or item[-2:] == '赋分':
+                checkbutton_var.append(ttk.StringVar())
+                cb = ttk.Checkbutton(master=subject_required_frame, text=f'{i + 1:0>2d} {item}',
+                                     variable=checkbutton_var[-1],
+                                     onvalue=item, offvalue='')
+                cb.grid(row=i + 2, column=0, pady=3, sticky='w')
+                checkbutton_name.append(item)
+
+        # 创建组合科目复选框
+        select_all_var2 = ttk.StringVar()
+        cb = ttk.Checkbutton(master=subject_optional_frame, text='全选', variable=select_all_var2,
+                             onvalue='全选', offvalue='',
+                             command=lambda: select_all1(select_all_var2, checkbutton_var2,
+                                                         checkbutton_name2))
+        cb.grid(row=1, column=0, pady=5, sticky='w')
+
+        checkbutton_var2 = []
+        checkbutton_name2 = []
+        for i, item in enumerate(self.title):
+            if item[:2] in possible_subjects or item[-2:] == '赋分':
+                checkbutton_var2.append(ttk.StringVar())
+                cb = ttk.Checkbutton(master=subject_optional_frame, text=f'{i + 1:0>2d} {item}',
+                                     variable=checkbutton_var2[-1],
+                                     onvalue=item, offvalue='')
+                cb.grid(row=i + 2, column=0, pady=3, sticky='w')
+                checkbutton_name2.append(item)
+
+        # 配置Canvas的滚动区域
+        subject_required_frame.update_idletasks()
+        subject_optional_frame.update_idletasks()
+        canvas.config(scrollregion=canvas.bbox("all"))
+        canvas2.config(scrollregion=canvas2.bbox("all"))
+
+        # 注意：如果你的窗口可变大小，可能需要在窗口大小变化时更新scrollregion
+        def on_canvas_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            canvas2.configure(scrollregion=canvas2.bbox("all"))
+
+        canvas.bind('<Configure>', on_canvas_configure)
+        canvas2.bind('<Configure>', on_canvas_configure)
+
+        # 创建按钮
+        total_btn = ttk.Button(master=btn_frame, text='计算组合成绩', command=lambda: MyThread(total_score))
+        total_btn.grid(row=0, column=0, pady=5)
+        ttk.Button(master=btn_frame, text='返回主页', command=back).grid(row=1, column=0, pady=5)
+        ttk.Label(master=btn_frame, textvariable=self.info_text, foreground='#666666', font=('黑体', 12)).grid(row=2,
+                                                                                                               column=0,
+                                                                                                               pady=10)
+
+        self.grid_forget()
+        sum_page.grid()
 
     def save_file(self):
         """生成Excel文件"""
