@@ -209,7 +209,7 @@ class App(ttk.Frame):
             ttk.Label(master=et_frame, text='名称:', font=('黑体', 10)).grid(row=20, column=0, pady=10)
             file_name_et = ttk.Entry(et_frame, width=19)
             file_name_et.grid(row=20, column=1, columnspan=3, pady=10)
-            file_name_et.insert('end', template_name)
+            file_name_et.insert('end', '新赋分模版')
 
             ttk.Button(master=btn_frame, text='新增一级', command=lambda: add_et_row(et_frame, et_obj)).grid(pady=5)
             ttk.Button(master=btn_frame, text='删除一级', command=lambda: del_et_row(et_obj)).grid(pady=5)
@@ -236,7 +236,7 @@ class App(ttk.Frame):
 
         # 读取指定目录里的所有文件，创建标签和按钮
         template_list = os.listdir('conf')
-        template_list.remove('新模板')
+        template_list.remove(new_template)
         for i, template in enumerate(template_list):
             ttk.Label(master=list_frame, text=template, font=('黑体', 12)).grid(row=i + 1, column=0, padx=5, pady=5)
             ttk.Button(master=list_frame, text='修改', command=lambda t=template: modify_template(t),
@@ -391,6 +391,7 @@ class App(ttk.Frame):
 
         convert_page = ttk.Frame(master=app, padding=20)
 
+        # Frame组件无法通过绑定Scrollbar组件来实现滚动，需要先创建Canvas，再在Canvas内创建Frame
         # 第一列 创建Canvas
         canvas = ttk.Canvas(master=convert_page, width=150)
         canvas.grid(row=0, column=0, padx=10, sticky='nsew')
@@ -421,8 +422,6 @@ class App(ttk.Frame):
                              command=lambda: select_all1(select_all_var, checkbutton_var, checkbutton_name))
         cb.grid(row=1, column=0, pady=5, sticky='w')
 
-        possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
-                             '生物', '总分', '总成绩', '全科')
         checkbutton_var = []
         checkbutton_name = []
         for i, item in enumerate(self.title):
@@ -560,8 +559,7 @@ class App(ttk.Frame):
                              command=lambda: select_all1(select_all_var1, checkbutton_var, checkbutton_name))
         cb.grid(row=1, column=0, pady=5, sticky='w')
 
-        possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
-                             '生物', '总分', '总成绩', '全科')
+
         checkbutton_var = []
         checkbutton_name = []
         for i, item in enumerate(self.title):
@@ -709,8 +707,6 @@ class App(ttk.Frame):
                              command=lambda: select_all1(select_all_var1, checkbutton_var, checkbutton_name))
         cb.grid(row=1, column=0, pady=5, sticky='w')
 
-        possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
-                             '生物', '总分', '总成绩', '全科')
         checkbutton_var = []
         checkbutton_name = []
         for i, item in enumerate(self.title):
@@ -793,6 +789,8 @@ class App(ttk.Frame):
 
 if __name__ == "__main__":
     title_suffix = '赋分'
+    possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
+                         '生物', '总分', '总成绩', '全科')
     app = ttk.Window(title="等级赋分程序")
     app.iconbitmap(bitmap='green_apple.ico')
     app.iconbitmap(default='green_apple.ico')
