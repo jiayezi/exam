@@ -1,6 +1,6 @@
 """
 图像界面程序，计算赋分成绩和排名
-版本：1
+版本：2
 """
 import os
 from threading import Thread
@@ -8,12 +8,6 @@ from tkinter import filedialog
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
 from openpyxl import Workbook, load_workbook
-
-
-class Student:
-    def __init__(self, row):
-        self.row = row
-        self.group = ''
 
 
 class MyThread(Thread):
@@ -58,7 +52,7 @@ class App(ttk.Frame):
     def __init__(self, app):
         super().__init__(app, padding=20)
         self.title = []
-        self.student_objs = []
+        self.student_list = []
         self.createUI()
 
     def createUI(self):
@@ -263,20 +257,19 @@ class App(ttk.Frame):
         if not path:
             return
 
-        self.open_btn.config(state='disabled')
+        self.btn_freeze()
         self.info_text.set('正在读取数据')
 
         wb = load_workbook(path, read_only=True)
         ws = wb.active
 
         # 存为对象
-        self.student_objs = []
+        self.student_list = []
         for i, row in enumerate(ws.values):
             if i == 0:
                 self.title = list(row)
                 continue
-            stu_obj = Student(list(row))
-            self.student_objs.append(stu_obj)
+            self.student_list.append({'row': list(row)})
         wb.close()
 
         self.info_text.set('读取完成')
@@ -329,27 +322,27 @@ class App(ttk.Frame):
 
             for sub_index, subject in enumerate(selected_subject_name):
                 score_index = selected_subject_index[sub_index]
-                self.student_objs.sort(key=lambda x: sort_rule(x.row[score_index]), reverse=True)
+                self.student_list.sort(key=lambda x: sort_rule(x['row'][score_index]), reverse=True)
 
                 # 获取得分大于0分的人数、获取大于0分的最小原始分
-                student_data_reverse = self.student_objs[::-1]
+                student_data_reverse = self.student_list[::-1]
                 student_num = len(student_data_reverse)
                 min_score = 0.0
                 for row_index, student in enumerate(student_data_reverse):
-                    if isinstance(student.row[score_index], str) or student.row[score_index] is None:
+                    if isinstance(student['row'][score_index], str) or student['row'][score_index] is None:
                         continue
-                    if float(student.row[score_index]) > 0.0:
+                    if float(student['row'][score_index]) > 0.0:
                         student_num -= row_index
-                        min_score = float(student.row[score_index])
+                        min_score = float(student['row'][score_index])
                         break
 
                 # 获取原始分等级区间
-                rate_src = [[float(self.student_objs[0].row[score_index])]]
+                rate_src = [[float(self.student_list[0]['row'][score_index])]]
                 rate = (student_num - 1) / student_num
                 previous_score = -1  # 上个分数，初始值为-1
                 temp_dj = 0  # 初始等级和索引
-                for row_index, student in enumerate(self.student_objs):
-                    current_score_str = student.row[score_index]
+                for row_index, student in enumerate(self.student_list):
+                    current_score_str = student['row'][score_index]
                     if not isinstance(current_score_str, (int, float)):
                         continue
 
@@ -363,19 +356,19 @@ class App(ttk.Frame):
                                 if temp_dj != e_index:
                                     temp_dj = e_index
                                     rate_src[temp_dj - 1].append(
-                                        float(self.student_objs[row_index - 1].row[score_index]))
-                                    rate_src.append([float(student.row[score_index])])
+                                        float(self.student_list[row_index - 1]['row'][score_index]))
+                                    rate_src.append([float(student['row'][score_index])])
                                 break
                 # rate_src[-1].append(float(student_data[-1][extra + i]))
                 rate_src[-1].append(min_score)
                 # print(f'{subject}原始分等级区间：{rate_src}')
 
                 # 计算赋分成绩
-                for student in self.student_objs:
-                    score = student.row[score_index]
+                for student in self.student_list:
+                    score = student['row'][score_index]
                     if not isinstance(score, (int, float)) or score == 0:
-                        student.row.append('')
-                        student.row.append('')
+                        student['row'].append('')
+                        student['row'].append('')
                         continue
                     xsdj = 0
                     for index, dj_score in enumerate(rate_src):
@@ -387,8 +380,8 @@ class App(ttk.Frame):
                     a = rate_dist[xsdj][1]
                     b = rate_dist[xsdj][0]
                     converts = (b * (score - m) + a * (n - score)) / (n - m)
-                    student.row.append(grade_dict[xsdj])
-                    student.row.append(round(converts))
+                    student['row'].append(grade_dict[xsdj])
+                    student['row'].append(round(converts))
                 self.title.append(f'{subject}等级')
                 self.title.append(f'{subject}赋分')
 
@@ -503,33 +496,33 @@ class App(ttk.Frame):
 
             # 给学生设置分组，获取所有分组
             group_set = set()
-            for student in self.student_objs:
+            for student in self.student_list:
                 group_name = ''
                 for g_index in rank_group_index:
-                    group_name += student.row[g_index]
+                    group_name += student['row'][g_index]
                 group_set.add(group_name)
-                student.group = group_name
+                student['group'] = group_name
 
             # 开始计算
             group_list = list(group_set)
             for sub_index, subject in enumerate(selected_subject_name):
                 for group in group_list:
-                    student_objs_new = list(filter(lambda x: x.group == group, self.student_objs))
+                    student_objs_new = list(filter(lambda x: x['group'] == group, self.student_list))
                     score_index = selected_subject_index[sub_index]
-                    student_objs_new.sort(key=lambda x: sort_rule(x.row[score_index]), reverse=True)
+                    student_objs_new.sort(key=lambda x: sort_rule(x['row'][score_index]), reverse=True)
 
                     prev = -1  # 上个分数，初始值为-1
                     rank = 0  # 当前排名
                     for s_index, student in enumerate(student_objs_new):
-                        score = student.row[score_index]
+                        score = student['row'][score_index]
                         if not isinstance(score, (int, float)):
-                            student.row.append('')
+                            student['row'].append('')
                             continue
                         # 如果分数不一样，排名就是索引值+1，如果分数一样，排名不变
                         if score != prev:
                             rank = s_index + 1
                             prev = score
-                        student.row.append(rank)
+                        student['row'].append(rank)
                 self.title.append(f'{subject}{group_title}排名')
 
             self.info_text.set('排名计算完成')
@@ -572,7 +565,7 @@ class App(ttk.Frame):
         checkbutton_var = []
         checkbutton_name = []
         for i, item in enumerate(self.title):
-            if item[:2] in possible_subjects or item[-2:] == '赋分':
+            if item[:2] in possible_subjects or item[-2:] == title_suffix:
                 checkbutton_var.append(ttk.StringVar())
                 cb = ttk.Checkbutton(master=subject_item_frame, text=f'{i + 1:0>2d} {item}',
                                      variable=checkbutton_var[-1],
@@ -653,7 +646,7 @@ class App(ttk.Frame):
             import itertools
             for value in itertools.combinations(selected_subject_name2, 2):
                 temp_text = ''.join(selected_subject_name)
-                title_text = f'{temp_text}{value[0]}{value[1]}组合'.replace('语文数学英语', '')
+                title_text = f'{temp_text}{value[0]}{value[1]}组合'.replace('语文数学英语', '').replace(title_suffix, '')
                 # 6个科目名字的列表
                 subject_list = selected_subject_name + list(value)
 
@@ -663,14 +656,14 @@ class App(ttk.Frame):
                     index = self.title.index(subject_name)
                     subject_index.append(index)
 
-                for s_index, student in enumerate(self.student_objs):
+                for s_index, student in enumerate(self.student_list):
                     s = 0
                     for index in subject_index:
-                        score = student.row[index]
+                        score = student['row'][index]
                         if not isinstance(score, (int, float)):
                             continue
                         s += score
-                    student.row.append(s)
+                    student['row'].append(s)
                 self.title.append(title_text)
 
             self.info_text.set('组合成绩计算完成')
@@ -721,7 +714,7 @@ class App(ttk.Frame):
         checkbutton_var = []
         checkbutton_name = []
         for i, item in enumerate(self.title):
-            if item[:2] in possible_subjects or item[-2:] == '赋分':
+            if item[:2] in possible_subjects or item[-2:] == title_suffix:
                 checkbutton_var.append(ttk.StringVar())
                 cb = ttk.Checkbutton(master=subject_required_frame, text=f'{i + 1:0>2d} {item}',
                                      variable=checkbutton_var[-1],
@@ -740,7 +733,7 @@ class App(ttk.Frame):
         checkbutton_var2 = []
         checkbutton_name2 = []
         for i, item in enumerate(self.title):
-            if item[:2] in possible_subjects or item[-2:] == '赋分':
+            if item[:2] in possible_subjects or item[-2:] == title_suffix:
                 checkbutton_var2.append(ttk.StringVar())
                 cb = ttk.Checkbutton(master=subject_optional_frame, text=f'{i + 1:0>2d} {item}',
                                      variable=checkbutton_var2[-1],
@@ -789,8 +782,8 @@ class App(ttk.Frame):
         ws = wb.create_sheet()
 
         ws.append(self.title)
-        for student in self.student_objs:
-            ws.append(student.row)
+        for student in self.student_list:
+            ws.append(student['row'])
 
         wb.save(path)
         wb.close()
@@ -799,6 +792,7 @@ class App(ttk.Frame):
 
 
 if __name__ == "__main__":
+    title_suffix = '赋分'
     app = ttk.Window(title="等级赋分程序")
     app.iconbitmap(bitmap='green_apple.ico')
     app.iconbitmap(default='green_apple.ico')
